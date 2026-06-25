@@ -25,7 +25,7 @@
   "model": "miprimerapp.categoria",
   "pk": 3,
   "fields": {
-    "nombre": "Bebés e Infantil",
+    "nombre": "BebÃ©s e Infantil",
     "icono": "bi-emoji-smile",
     "descripcion": "",
     "orden": 0,
@@ -69,7 +69,7 @@
   "model": "miprimerapp.categoria",
   "pk": 7,
   "fields": {
-    "nombre": "Prótesis",
+    "nombre": "PrÃ³tesis",
     "icono": "bi-award",
     "descripcion": "",
     "orden": 0,
@@ -542,7 +542,7 @@
   "pk": 15,
   "fields": {
     "categoria": 3,
-    "nombre": "Cepillo Curaprox kids 4-12 años",
+    "nombre": "Cepillo Curaprox kids 4-12 aÃ±os",
     "marca": "Curaprox",
     "descripcion": "",
     "precio": 4500,
@@ -716,7 +716,7 @@
   "pk": 21,
   "fields": {
     "categoria": 4,
-    "nombre": "Cepillo Interprox® conico 1,7 azul",
+    "nombre": "Cepillo InterproxÂ® conico 1,7 azul",
     "marca": "Interprox",
     "descripcion": "",
     "precio": 800,
@@ -745,7 +745,7 @@
   "pk": 22,
   "fields": {
     "categoria": 5,
-    "nombre": "Cepillo Interprox® micro 0,9 naranjo",
+    "nombre": "Cepillo InterproxÂ® micro 0,9 naranjo",
     "marca": "Interprox",
     "descripcion": "",
     "precio": 800,
@@ -774,7 +774,7 @@
   "pk": 23,
   "fields": {
     "categoria": 4,
-    "nombre": "Cepillo Interprox® micro 1,1 verde",
+    "nombre": "Cepillo InterproxÂ® micro 1,1 verde",
     "marca": "Interprox",
     "descripcion": "",
     "precio": 800,
@@ -803,7 +803,7 @@
   "pk": 24,
   "fields": {
     "categoria": 4,
-    "nombre": "Cepillo Interprox® mini 1,4 amarillo",
+    "nombre": "Cepillo InterproxÂ® mini 1,4 amarillo",
     "marca": "Interprox",
     "descripcion": "",
     "precio": 800,
@@ -832,7 +832,7 @@
   "pk": 25,
   "fields": {
     "categoria": 5,
-    "nombre": "Cepillo Interprox® miniconico 1,0 rojo",
+    "nombre": "Cepillo InterproxÂ® miniconico 1,0 rojo",
     "marca": "Interprox",
     "descripcion": "",
     "precio": 800,
@@ -861,7 +861,7 @@
   "pk": 26,
   "fields": {
     "categoria": 5,
-    "nombre": "Cepillo Interprox® nano 0,7 rosa",
+    "nombre": "Cepillo InterproxÂ® nano 0,7 rosa",
     "marca": "Interprox",
     "descripcion": "",
     "precio": 800,
@@ -890,7 +890,7 @@
   "pk": 27,
   "fields": {
     "categoria": 4,
-    "nombre": "Cepillo Interprox® Plus conico 1,7 azul",
+    "nombre": "Cepillo InterproxÂ® Plus conico 1,7 azul",
     "marca": "Interprox",
     "descripcion": "",
     "precio": 800,
@@ -919,7 +919,7 @@
   "pk": 28,
   "fields": {
     "categoria": 5,
-    "nombre": "Cepillo Interprox® Plus micro 0,9 naranjo",
+    "nombre": "Cepillo InterproxÂ® Plus micro 0,9 naranjo",
     "marca": "Interprox",
     "descripcion": "",
     "precio": 800,
@@ -948,7 +948,7 @@
   "pk": 29,
   "fields": {
     "categoria": 4,
-    "nombre": "Cepillo Interprox® Plus micro 1,1 verde",
+    "nombre": "Cepillo InterproxÂ® Plus micro 1,1 verde",
     "marca": "Interprox",
     "descripcion": "",
     "precio": 800,
@@ -977,7 +977,7 @@
   "pk": 30,
   "fields": {
     "categoria": 4,
-    "nombre": "Cepillo Interprox® Plus mini 1,4 amarillo",
+    "nombre": "Cepillo InterproxÂ® Plus mini 1,4 amarillo",
     "marca": "Interprox",
     "descripcion": "",
     "precio": 800,
@@ -1006,7 +1006,7 @@
   "pk": 31,
   "fields": {
     "categoria": 5,
-    "nombre": "Cepillo Interprox® Plus miniconico 1,0 rojo",
+    "nombre": "Cepillo InterproxÂ® Plus miniconico 1,0 rojo",
     "marca": "Interprox",
     "descripcion": "",
     "precio": 800,
@@ -1035,7 +1035,7 @@
   "pk": 32,
   "fields": {
     "categoria": 5,
-    "nombre": "Cepillo Interprox® Plus nano 0,7 rosa",
+    "nombre": "Cepillo InterproxÂ® Plus nano 0,7 rosa",
     "marca": "Interprox",
     "descripcion": "",
     "precio": 800,
@@ -1064,7 +1064,7 @@
   "pk": 33,
   "fields": {
     "categoria": 4,
-    "nombre": "Cepillo Interprox® Plus super conico 2,0 negro",
+    "nombre": "Cepillo InterproxÂ® Plus super conico 2,0 negro",
     "marca": "Interprox",
     "descripcion": "",
     "precio": 800,
@@ -2050,7 +2050,7 @@
   "pk": 67,
   "fields": {
     "categoria": 6,
-    "nombre": "Enjuague VITIS Encías 30 ml.",
+    "nombre": "Enjuague VITIS EncÃ­as 30 ml.",
     "marca": "VITIS",
     "descripcion": "",
     "precio": 1000,
@@ -2572,7 +2572,7 @@
   "pk": 85,
   "fields": {
     "categoria": 3,
-    "nombre": "Pack Cepillo VITIS® junior + gel 8ml",
+    "nombre": "Pack Cepillo VITISÂ® junior + gel 8ml",
     "marca": "VITIS",
     "descripcion": "",
     "precio": 3000,
@@ -2601,7 +2601,7 @@
   "pk": 86,
   "fields": {
     "categoria": 3,
-    "nombre": "Pack Cepillo VITIS® kids + gel 8ml",
+    "nombre": "Pack Cepillo VITISÂ® kids + gel 8ml",
     "marca": "VITIS",
     "descripcion": "",
     "precio": 3000,
@@ -2630,7 +2630,7 @@
   "pk": 87,
   "fields": {
     "categoria": 8,
-    "nombre": "Pack Cepillo VITIS® sensible + pasta sensible 15ml",
+    "nombre": "Pack Cepillo VITISÂ® sensible + pasta sensible 15ml",
     "marca": "VITIS",
     "descripcion": "",
     "precio": 3000,
@@ -2659,7 +2659,7 @@
   "pk": 88,
   "fields": {
     "categoria": 8,
-    "nombre": "Pack Cepillo VITIS® suave + pasta encias 15ml",
+    "nombre": "Pack Cepillo VITISÂ® suave + pasta encias 15ml",
     "marca": "VITIS",
     "descripcion": "",
     "precio": 3000,
@@ -3384,7 +3384,7 @@
   "pk": 113,
   "fields": {
     "categoria": 9,
-    "nombre": "Pasta Xeros Dentaid® 75 ml",
+    "nombre": "Pasta Xeros DentaidÂ® 75 ml",
     "marca": "Xeros",
     "descripcion": "",
     "precio": 7000,
@@ -3645,7 +3645,7 @@
   "pk": 122,
   "fields": {
     "categoria": 4,
-    "nombre": "Pack Cepillo VITIS® Orthodontic + pasta Ortho 15ml",
+    "nombre": "Pack Cepillo VITISÂ® Orthodontic + pasta Ortho 15ml",
     "marca": "VITIS",
     "descripcion": "",
     "precio": 3000,
