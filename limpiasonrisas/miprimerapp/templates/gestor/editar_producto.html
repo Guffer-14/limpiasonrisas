@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block title %}Editar Producto — Gestor{% endblock %}
+
+{% block contenido %}
+<div class="container py-4" style="max-width:700px;">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 style="font-family:'Fredoka One',cursive;color:#993556;">
+      ✏️ Editar Producto
+    </h2>
+    <a href="{% url 'gestor_lista_productos' %}" class="btn btn-ls-outline">
+      <i class="bi bi-arrow-left me-1"></i>Volver
+    </a>
+  </div>
+
+  <div class="ls-form-card">
+    <div class="ls-form-header">
+      <h5 class="mb-0"><i class="bi bi-pencil-square me-2"></i>{{ producto.nombre }}</h5>
+    </div>
+    <div class="p-4">
+      <div class="alert mb-3" style="background:#FEF3C7;border:1px solid #F59E0B;font-size:.85rem;">
+        <i class="bi bi-info-circle me-2" style="color:#92400E;"></i>
+        <strong style="color:#92400E;">Nota:</strong> El precio y costo solo puede editarlos el Administrador.
+      </div>
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-md-8">
+            <label class="form-label fw-semibold small">Nombre *</label>
+            <input type="text" name="nombre" class="form-control ls-input" value="{{ producto.nombre }}" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small">Marca</label>
+            <input type="text" name="marca" class="form-control ls-input" value="{{ producto.marca }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold small">Categoría</label>
+            <select name="categoria" class="form-select ls-input">
+              <option value="">-- Sin categoría --</option>
+              {% for cat in categorias %}
+              <option value="{{ cat.id }}" {% if producto.categoria.id == cat.id %}selected{% endif %}>
+                {{ cat.nombre }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold small">Stock disponible</label>
+            <div class="form-control ls-input" style="background:#f8f6f4; color:#9C6A50; font-weight:700;">
+              {{ producto.stock }} unidades
+            </div>
+            <div class="form-text">
+              <i class="bi bi-info-circle"></i> Para modificar el stock, comunícate con el administrador.
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold small">Descripción</label>
+            <textarea name="descripcion" class="form-control ls-input" rows="3">{{ producto.descripcion }}</textarea>
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold small">Imagen del producto</label>
+            {% if producto.imagen %}
+            <div class="mb-2">
+              <img src="{{ producto.imagen.url }}" style="max-height:100px;border-radius:8px;" class="img-thumbnail">
+              <small class="text-muted ms-2">Imagen actual</small>
+            </div>
+            {% endif %}
+            <input type="file" name="imagen" class="form-control ls-input" accept="image/*">
+            <div class="form-text">JPG, PNG (opcional)</div>
+          </div>
+          <div class="col-md-4">
+            <div class="form-check mt-2">
+              <input class="form-check-input" type="checkbox" name="activo" id="activo" {% if producto.activo %}checked{% endif %}>
+              <label class="form-check-label" for="activo">Activo</label>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="form-check mt-2">
+              <input class="form-check-input" type="checkbox" name="destacado" id="destacado" {% if producto.destacado %}checked{% endif %}>
+              <label class="form-check-label" for="destacado">Destacado ⭐</label>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="form-check mt-2">
+              <input class="form-check-input" type="checkbox" name="pronto_a_vencer" id="pronto_a_vencer" {% if producto.pronto_a_vencer %}checked{% endif %}>
+              <label class="form-check-label" for="pronto_a_vencer">Pronto a vencer ⚠️</label>
+            </div>
+          </div>
+        </div>
+        <div class="d-grid mt-4">
+          <button type="submit" class="btn btn-ls">
+            <i class="bi bi-check-circle me-2"></i>Guardar cambios
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

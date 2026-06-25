@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% block title %}Mis datos{% endblock %}
+
+{% block contenido %}
+<div class="container py-4">
+
+  <!-- Header -->
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h2 style="font-family:'Fredoka One',cursive;color:#993556;margin:0;">
+        ⚙️ Mis datos
+      </h2>
+      <p class="text-muted small mb-0">Actualiza tu información personal y direcciones de despacho</p>
+    </div>
+    <a href="{% url 'mi_cuenta' %}" class="btn btn-ls-outline">
+      <i class="bi bi-arrow-left me-1"></i>Volver a mi cuenta
+    </a>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-7">
+
+      <!-- Datos personales -->
+      <form method="post" class="ls-form-card mb-4">
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="guardar_datos">
+        <div class="ls-form-header">
+          <h5 class="mb-0"><i class="bi bi-person me-2"></i>Datos personales</h5>
+        </div>
+        <div class="p-4">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small">Nombre</label>
+              <input type="text" name="first_name" class="form-control ls-input" value="{{ user.first_name }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small">Apellido</label>
+              <input type="text" name="last_name" class="form-control ls-input" value="{{ user.last_name }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small">Email</label>
+              <input type="email" name="email" class="form-control ls-input" value="{{ user.email }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small">RUT</label>
+              <input type="text" name="rut" class="form-control ls-input" value="{{ perfil.rut }}"
+                placeholder="12.345.678-9">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small">Teléfono</label>
+              <input type="text" name="telefono" class="form-control ls-input" value="{{ perfil.telefono }}"
+                placeholder="+56 9 1234 5678">
+            </div>
+          </div>
+
+          <hr class="my-4">
+
+          <label class="form-label fw-semibold small">Horario preferido para recibir tus pedidos</label>
+          <select name="horario" class="form-select ls-input mb-3">
+            <option value="manana" {% if perfil.horario_preferido == 'manana' %}selected{% endif %}>
+              Mañana (9:00–13:00)
+            </option>
+            <option value="tarde" {% if perfil.horario_preferido == 'tarde' %}selected{% endif %}>
+              Tarde (14:00–18:00)
+            </option>
+            <option value="cualquiera" {% if perfil.horario_preferido == 'cualquiera' %}selected{% endif %}>
+              Cualquier horario
+            </option>
+          </select>
+
+          <label class="form-label fw-semibold small">Días disponibles</label>
+          <div class="row g-2 mb-3">
+            {% for valor, etiqueta in perfil.DIAS_CHOICES %}
+            <div class="col-6 col-md-4">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="dias" value="{{ valor }}"
+                  id="dia-{{ valor }}"
+                  {% if valor in perfil.dias_disponibles %}checked{% endif %}>
+                <label class="form-check-label small" for="dia-{{ valor }}">{{ etiqueta }}</label>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+
+          <label class="form-label fw-semibold small">Observaciones de entrega</label>
+          <textarea name="observaciones" class="form-control ls-input" rows="2"
+            placeholder="Ej: Tocar timbre, no llamar">{{ perfil.observaciones_entrega }}</textarea>
+
+          <div class="d-grid mt-4">
+            <button type="submit" class="btn btn-ls">
+              <i class="bi bi-check-circle me-2"></i>Guardar cambios
+            </button>
+          </div>
+        </div>
+      </form>
+
+    </div>
+
+    <div class="col-lg-5">
+
+      <!-- Direcciones -->
+      <div class="ls-form-card mb-4">
+        <div class="ls-form-header">
+          <h5 class="mb-0"><i class="bi bi-truck me-2"></i>Mis direcciones</h5>
+        </div>
+        <div class="p-4">
+          {% if direcciones %}
+          {% for dir in direcciones %}
+          <div class="d-flex align-items-start justify-content-between mb-3 pb-3"
+            style="border-bottom:1px solid #f0e6e9;">
+            <div>
+              <strong>{{ dir.alias }}</strong>
+              {% if dir.principal %}
+              <span class="badge rounded-pill ms-1" style="background:#993556;font-size:.65rem;">Principal</span>
+              {% endif %}
+              <div class="text-muted small">{{ dir.direccion }}, {{ dir.ciudad }}</div>
+              {% if dir.referencia %}<div class="text-muted small">{{ dir.referencia }}</div>{% endif %}
+            </div>
+            <div class="d-flex flex-column gap-1">
+              {% if not dir.principal %}
+              <form method="post" class="m-0">
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="marcar_principal">
+                <input type="hidden" name="direccion_id" value="{{ dir.pk }}">
+                <button type="submit" class="btn btn-ls-outline btn-sm" title="Marcar como principal">
+                  <i class="bi bi-star"></i>
+                </button>
+              </form>
+              {% endif %}
+              <form method="post" class="m-0"
+                onsubmit="return confirm('¿Eliminar esta dirección?');">
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="eliminar_direccion">
+                <input type="hidden" name="direccion_id" value="{{ dir.pk }}">
+                <button type="submit" class="btn btn-ls-outline btn-sm text-danger" title="Eliminar">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+            </div>
+          </div>
+          {% endfor %}
+          {% else %}
+          <p class="text-muted small mb-4">Aún no tienes direcciones guardadas.</p>
+          {% endif %}
+
+          <hr class="my-3">
+
+          <p class="fw-semibold small mb-2"><i class="bi bi-plus-circle me-1"></i>Agregar nueva dirección</p>
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="agregar_direccion">
+            <div class="row g-2">
+              <div class="col-12">
+                <input type="text" name="alias" class="form-control ls-input form-control-sm"
+                  placeholder="Alias (Casa, Trabajo…)">
+              </div>
+              <div class="col-12">
+                <input type="text" name="nueva_direccion" class="form-control ls-input form-control-sm"
+                  placeholder="Dirección (calle, número)">
+              </div>
+              <div class="col-6">
+                <input type="text" name="nueva_ciudad" class="form-control ls-input form-control-sm"
+                  placeholder="Ciudad">
+              </div>
+              <div class="col-6">
+                <select name="nueva_region" class="form-select ls-input form-control-sm">
+                  <option value="RM">Región Metropolitana</option>
+                  <option value="V">Valparaíso</option>
+                  <option value="VI">O'Higgins</option>
+                  <option value="VII">Maule</option>
+                  <option value="VIII">Biobío</option>
+                  <option value="IX">La Araucanía</option>
+                  <option value="X">Los Lagos</option>
+                  <option value="XIV">Los Ríos</option>
+                  <option value="XV">Arica y Parinacota</option>
+                  <option value="XVI">Ñuble</option>
+                  <option value="I">Tarapacá</option>
+                  <option value="II">Antofagasta</option>
+                  <option value="III">Atacama</option>
+                  <option value="IV">Coquimbo</option>
+                </select>
+              </div>
+            </div>
+            <div class="d-grid mt-3">
+              <button type="submit" class="btn btn-ls-outline btn-sm">
+                <i class="bi bi-plus-circle me-1"></i>Agregar dirección
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

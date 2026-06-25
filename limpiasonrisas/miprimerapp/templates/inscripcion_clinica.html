@@ -1,0 +1,286 @@
+{% extends 'base.html' %}
+{% block title %}Inscribir mi clínica{% endblock %}
+
+{% block contenido %}
+<div style="background:linear-gradient(135deg,#FBEAF0,#ede0f5);padding:48px 0 32px;">
+  <div class="container text-center">
+    <h1 class="ls-section-title">🏥 Inscribir mi clínica</h1>
+    <p class="text-muted mt-2">Accede a precios B2D, sistema de pedidos y seguimiento en línea</p>
+  </div>
+</div>
+
+<div class="container py-5">
+  <div class="row g-5">
+    <div class="col-lg-8">
+      <div class="ls-form-card">
+        <div class="ls-form-header">
+          <h3>📋 Datos de la clínica</h3>
+          <p class="mb-0 mt-1" style="opacity:.85;">
+            Completa el formulario y nuestro equipo te contactará en 24 horas
+          </p>
+        </div>
+        <div class="ls-form-body">
+          <form method="post" novalidate>
+            {% csrf_token %}
+
+            <!-- Datos clínica -->
+            <h6 class="fw-bold mb-3" style="color:#993556;">
+              <i class="bi bi-building me-2"></i>Información de la clínica
+            </h6>
+            <div class="row g-3">
+              <div class="col-md-8">
+                <label class="form-label fw-semibold small">Nombre de la clínica *</label>
+                {{ form.nombre_clinica }}
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold small">RUT *</label>
+                {{ form.rut }}
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold small">Dirección *</label>
+                {{ form.direccion }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">Ciudad *</label>
+                {{ form.ciudad }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">Región *</label>
+                {{ form.region }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">Teléfono *</label>
+                {{ form.telefono }}
+                <div class="form-text">Ej: 912345678 (9 dígitos)</div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">Email *</label>
+                {{ form.email }}
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold small">Sitio web</label>
+                {{ form.sitio_web }}
+              </div>
+            </div>
+
+            <hr class="my-4">
+            <!-- Persona de contacto -->
+            <h6 class="fw-bold mb-3" style="color:#6B3FA0;">
+              <i class="bi bi-person-badge me-2"></i>Persona de contacto
+            </h6>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">Nombre del responsable *</label>
+                {{ form.nombre_contacto }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">Cargo</label>
+                {{ form.cargo_contacto }}
+              </div>
+            </div>
+
+            <hr class="my-4">
+            <!-- Preferencias de contacto -->
+            <h6 class="fw-bold mb-3" style="color:#993556;">
+              <i class="bi bi-telephone-fill me-2"></i>¿Cómo podemos contactarte?
+            </h6>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">Medio preferido *</label>
+                <select name="medio_contacto" class="form-select ls-input">
+                  <option value="email">📧 Email</option>
+                  <option value="whatsapp">💬 WhatsApp</option>
+                  <option value="llamada">📞 Llamada telefónica</option>
+                  <option value="presencial">🏢 Presencial</option>
+                  <option value="otro">🌐 Otro</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">Horario preferido *</label>
+                <select name="dias_contacto" class="form-select ls-input">
+                  <option value="manana">Mañana (9:00–13:00)</option>
+                  <option value="tarde">Tarde (14:00–18:00)</option>
+                  <option value="cualquier_dia">Cualquier horario</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold small">Días disponibles *</label>
+                <div class="p-3 rounded-3" style="background:#f8f6f4;border:1px solid #eee;">
+                  <div class="row g-2">
+                    {% for dia, label in dias_choices %}
+                    <div class="col-md-3">
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox"
+                               name="dias_disponibles" value="{{ dia }}"
+                               id="dia_{{ dia }}">
+                        <label class="form-check-label small" for="dia_{{ dia }}">{{ label }}</label>
+                      </div>
+                    </div>
+                    {% endfor %}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <hr class="my-4">
+            <!-- Productos -->
+            <h6 class="fw-bold mb-3" style="color:#6B3FA0;">
+              <i class="bi bi-box-seam me-2"></i>Preferencias de productos
+            </h6>
+            <div class="mb-3">
+              <label class="form-label fw-semibold small">Rotación estimada de productos *</label>
+              {{ form.rotacion_estimada }}
+            </div>
+
+            <!-- Buscador de productos -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold small">Productos de interés</label>
+              <p class="text-muted small mb-2">Busca y selecciona los productos que te gustaría manejar</p>
+              <div style="position:relative;">
+                <input type="text" id="buscador-productos" class="form-control ls-input"
+                       placeholder="Escribe al menos 3 letras… ej: cura, vitis"
+                       autocomplete="off">
+                <div id="sugerencias-productos"
+                     class="position-absolute bg-white border rounded-3 shadow-sm"
+                     style="z-index:1050;display:none;max-height:200px;overflow-y:auto;width:100%;top:100%;left:0;">
+                </div>
+              </div>
+              <!-- Lista de seleccionados -->
+              <div id="lista-seleccionados" class="mt-2"
+                   style="border:0.5px solid #eee;border-radius:8px;overflow:hidden;display:none;">
+              </div>
+              <!-- Inputs hidden para enviar al servidor -->
+              <div id="inputs-productos"></div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold small">{{ form.producto_no_catalogo.label }}</label>
+              {{ form.producto_no_catalogo }}
+              <div class="form-text">¿Buscas algo que no encuentras? Cuéntanos y lo conseguimos.</div>
+            </div>
+
+            <div class="d-grid mt-4">
+              <button type="submit" class="btn btn-ls btn-lg">
+                <i class="bi bi-building-add me-2"></i>Enviar solicitud de inscripción
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar beneficios -->
+    <div class="col-lg-4">
+      <div class="p-4 rounded-4 mb-4" style="background:#FBEAF0;border:2px solid #e8d5dc;">
+        <h5 style="font-family:'Fredoka One',cursive;color:#993556;">✨ Beneficios para clínicas</h5>
+        <ul class="list-unstyled mt-3">
+          <li class="mb-3 d-flex gap-2">
+            <i class="bi bi-check-circle-fill text-success mt-1"></i>
+            <span><strong>Precios B2D exclusivos</strong><br>
+            <small class="text-muted">Canal dental con margen especial por volumen</small></span>
+          </li>
+          <li class="mb-3 d-flex gap-2">
+            <i class="bi bi-check-circle-fill text-success mt-1"></i>
+            <span><strong>Panel de pedidos online</strong><br>
+            <small class="text-muted">Haz y sigue tus pedidos desde tu panel</small></span>
+          </li>
+          <li class="mb-3 d-flex gap-2">
+            <i class="bi bi-check-circle-fill text-success mt-1"></i>
+            <span><strong>Seguimiento en tiempo real</strong><br>
+            <small class="text-muted">Notificaciones por email en cada etapa</small></span>
+          </li>
+          <li class="mb-3 d-flex gap-2">
+            <i class="bi bi-check-circle-fill text-success mt-1"></i>
+            <span><strong>Historial de compras</strong><br>
+            <small class="text-muted">Revisa todos tus pedidos anteriores</small></span>
+          </li>
+        </ul>
+      </div>
+      <div class="p-4 rounded-4" style="background:#f0e6f7;">
+        <h6 class="fw-bold" style="color:#6B3FA0;">¿Tienes dudas?</h6>
+        <p class="text-muted small">Escríbenos directamente</p>
+        <a href="https://wa.me/56964184917" target="_blank" class="btn btn-ls w-100">
+          <i class="bi bi-whatsapp me-2"></i>+569 6418 4917
+        </a>
+        <div class="text-center mt-2">
+          <small class="text-muted">limpiasonrisas.spa@gmail.com</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const seleccionados = {};
+let debounce;
+
+document.getElementById('buscador-productos').addEventListener('input', function() {
+  clearTimeout(debounce);
+  const q = this.value.trim();
+  const sug = document.getElementById('sugerencias-productos');
+  if (q.length < 3) { sug.style.display = 'none'; return; }
+  debounce = setTimeout(() => {
+    fetch('/api/buscar-productos/?q=' + encodeURIComponent(q))
+      .then(r => r.json())
+      .then(data => {
+        sug.innerHTML = '';
+        data.results.forEach(p => {
+          if (seleccionados[p.id]) return;
+          const div = document.createElement('div');
+          div.className = 'px-3 py-2';
+          div.style.cssText = 'cursor:pointer;border-bottom:1px solid #f0e6ec;font-size:.85rem;';
+          div.innerHTML = `<strong>${p.nombre}</strong>${p.marca ? ' <small class="text-muted">'+p.marca+'</small>' : ''}`;
+          div.addEventListener('mouseenter', () => div.style.background = '#faf0f4');
+          div.addEventListener('mouseleave', () => div.style.background = '');
+          div.addEventListener('click', () => {
+            agregarProducto(p.id, p.nombre, p.marca);
+            sug.style.display = 'none';
+            document.getElementById('buscador-productos').value = '';
+          });
+          sug.appendChild(div);
+        });
+        sug.style.display = data.results.length ? 'block' : 'none';
+      });
+  }, 280);
+});
+
+function agregarProducto(id, nombre, marca) {
+  if (seleccionados[id]) return;
+  seleccionados[id] = true;
+
+  const lista = document.getElementById('lista-seleccionados');
+  const inputs = document.getElementById('inputs-productos');
+  lista.style.display = 'block';
+
+  const fila = document.createElement('div');
+  fila.id = 'fila-' + id;
+  fila.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:0.5px solid #f0e6ec;font-size:.85rem;';
+  fila.innerHTML = `
+    <span><strong>${nombre}</strong>${marca ? ' <small class="text-muted">'+marca+'</small>' : ''}</span>
+    <button type="button" class="btn btn-sm btn-outline-danger" onclick="quitarProducto(${id})">
+      <i class="bi bi-trash3"></i>
+    </button>`;
+  lista.appendChild(fila);
+
+  const input = document.createElement('input');
+  input.type = 'hidden';
+  input.name = 'productos_interes';
+  input.value = id;
+  input.id = 'input-' + id;
+  inputs.appendChild(input);
+}
+
+function quitarProducto(id) {
+  delete seleccionados[id];
+  document.getElementById('fila-' + id)?.remove();
+  document.getElementById('input-' + id)?.remove();
+  const lista = document.getElementById('lista-seleccionados');
+  if (!Object.keys(seleccionados).length) lista.style.display = 'none';
+}
+
+document.addEventListener('click', e => {
+  if (!document.getElementById('buscador-productos').contains(e.target))
+    document.getElementById('sugerencias-productos').style.display = 'none';
+});
+</script>
+{% endblock %}

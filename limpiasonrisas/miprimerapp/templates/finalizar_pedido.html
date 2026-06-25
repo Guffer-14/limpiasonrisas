@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% load ls_filters %}
+{% block title %}Finalizar pedido{% endblock %}
+
+{% block contenido %}
+<div class="container py-4" style="max-width:800px;">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <h2 style="font-family:'Fredoka One',cursive;color:#993556;margin:0;">
+      ✅ Finalizar pedido
+    </h2>
+    <a href="{% url 'dashboard_clinica' %}" class="btn btn-ls-outline">
+      <i class="bi bi-arrow-left me-1"></i>Volver
+    </a>
+  </div>
+
+  <!-- Resumen del pedido -->
+  <div class="ls-form-card mb-4">
+    <div class="ls-form-header">
+      <h5 class="mb-0"><i class="bi bi-receipt me-2"></i>Resumen del pedido</h5>
+    </div>
+    <div class="p-4">
+      <table class="table ls-table align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Cant.</th>
+            <th>Precio B2D</th>
+            <th>Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in carrito_items %}
+          <tr>
+            <td>
+              <strong>{{ item.producto.nombre }}</strong>
+              {% if item.producto.marca %}<br><small class="text-muted">{{ item.producto.marca }}</small>{% endif %}
+              {% if item.observaciones %}<br><small class="fst-italic text-muted">{{ item.observaciones }}</small>{% endif %}
+            </td>
+            <td>
+              {{ item.cantidad }}
+              {% if item.sin_stock_suficiente %}
+              <i class="bi bi-exclamation-circle-fill text-danger ms-1"
+                title="Solo quedan {{ item.stock_disponible }} unidades disponibles" data-bs-toggle="tooltip"></i>
+              {% endif %}
+            </td>
+            <td>${{ item.precio_unitario|clp }}</td>
+            <td><strong>${{ item.subtotal|clp }}</strong></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr style="background:#f8f6f4;">
+            <td colspan="3" class="text-end fw-semibold">Neto (sin IVA)</td>
+            <td class="fw-bold">${{ carrito_neto|clp }}</td>
+          </tr>
+          <tr style="background:#f8f6f4;">
+            <td colspan="3" class="text-end text-muted small">IVA (19%)</td>
+            <td class="text-muted small">${{ carrito_iva|clp }}</td>
+          </tr>
+          <tr style="background:#FBEAF0;">
+            <td colspan="3" class="text-end fw-bold" style="color:#993556;font-size:1.05rem;">Total con IVA</td>
+            <td class="fw-bold" style="color:#993556;font-size:1.1rem;">${{ carrito_total|clp }}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- Datos de despacho (próximamente) -->
+  <div class="ls-form-card mb-4" style="border: 2px dashed #e8d5dc;">
+    <div class="p-4 text-center">
+      <i class="bi bi-truck" style="font-size:2.5rem;color:#e8d5dc;"></i>
+      <h5 class="mt-3" style="color:#993556;">Datos de despacho y pago</h5>
+      <p class="text-muted">Esta sección estará disponible próximamente.<br>
+        Por ahora, al confirmar nos contactaremos contigo para coordinar la entrega.</p>
+    </div>
+  </div>
+
+  <!-- Datos de la clínica (precargados) -->
+  <div class="ls-form-card mb-4">
+    <div class="ls-form-header">
+      <h5 class="mb-0"><i class="bi bi-building me-2"></i>Datos de entrega</h5>
+    </div>
+    <div class="p-4">
+      <div class="row g-2">
+        <div class="col-md-6">
+          <small class="text-muted">Clínica</small>
+          <div class="fw-semibold">{{ clinica.nombre_clinica }}</div>
+        </div>
+        <div class="col-md-6">
+          <small class="text-muted">Contacto</small>
+          <div class="fw-semibold">{{ clinica.nombre_contacto }}</div>
+        </div>
+        <div class="col-md-6">
+          <small class="text-muted">Dirección</small>
+          <div>{{ clinica.direccion }}, {{ clinica.ciudad }}</div>
+        </div>
+        <div class="col-md-6">
+          <small class="text-muted">Teléfono</small>
+          <div>{{ clinica.telefono }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botón que abre el modal -->
+  <button type="button" class="btn btn-ls btn-lg w-100" data-bs-toggle="modal" data-bs-target="#modalConfirmar">
+    <i class="bi bi-send-check me-2"></i>Confirmar pedido
+  </button>
+
+  <p class="text-center text-muted small mt-3">
+    Al confirmar, recibirás actualizaciones del estado de tu pedido por email.
+  </p>
+
+  <!-- Modal de confirmación -->
+  <div class="modal fade" id="modalConfirmar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4 border-0 shadow">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title fw-bold" style="color:#993556;">
+            🎉 ¿Listo para enviar tu pedido?
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted">Tu pedido incluye <strong>{{ carrito_items|length }} producto(s)</strong> por un total
+            de <strong style="color:#993556;">${{ carrito_total|clp }}</strong> con IVA.</p>
+          <p class="small text-muted">Recibirás actualizaciones por email en cada etapa. 📧</p>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-ls-outline" data-bs-dismiss="modal">
+            Cancelar
+          </button>
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="confirmar">
+            <button type="submit" class="btn btn-ls">
+              <i class="bi bi-send-check me-2"></i>Sí, confirmar pedido
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  {% endblock %}

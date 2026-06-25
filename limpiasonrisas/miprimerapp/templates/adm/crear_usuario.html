@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block title %}Crear Usuario{% endblock %}
+
+{% block contenido %}
+<div class="container py-4" style="max-width:600px;">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 style="font-family:'Fredoka One',cursive;color:#993556;">
+      ➕ Crear Usuario
+    </h2>
+    <a href="{% url 'adm_lista_usuarios' %}" class="btn btn-ls-outline">
+      <i class="bi bi-arrow-left me-1"></i>Volver
+    </a>
+  </div>
+
+  <div class="ls-form-card">
+    <div class="ls-form-header">
+      <h5 class="mb-0"><i class="bi bi-person-plus me-2"></i>Datos del usuario</h5>
+    </div>
+    <div class="p-4">
+      <form method="post">
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold small">Nombre *</label>
+            <input type="text" name="first_name" class="form-control ls-input" placeholder="Nombre">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold small">Apellido *</label>
+            <input type="text" name="last_name" class="form-control ls-input" placeholder="Apellido">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold small">Usuario *</label>
+            <input type="text" name="username" class="form-control ls-input" placeholder="nombre_usuario" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold small">Email *</label>
+            <input type="email" name="email" class="form-control ls-input" placeholder="correo@ejemplo.com" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold small">Contraseña *</label>
+            <div style="position:relative;">
+              <input type="password" name="password" id="password-input" class="form-control ls-input"
+                placeholder="••••••••" required style="padding-right:40px;">
+              <button type="button" onclick="togglePassword()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);
+                   background:none;border:none;color:#993556;cursor:pointer;padding:0;">
+                <i class="bi bi-eye" id="ojo-icon" style="font-size:1rem;"></i>
+              </button>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold small">Grupo</label>
+            <select name="grupo" class="form-select ls-input">
+              <option value="">-- Sin grupo --</option>
+              {% for g in grupos %}
+              <option value="{{ g.id }}">{{ g.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="d-grid mt-4">
+          <button type="submit" class="btn btn-ls">
+            <i class="bi bi-check-circle me-2"></i>Crear usuario
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  function togglePassword() {
+    const input = document.getElementById('password-input');
+    const icon = document.getElementById('ojo-icon');
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.className = 'bi bi-eye-slash';
+    } else {
+      input.type = 'password';
+      icon.className = 'bi bi-eye';
+    }
+  }
+</script>
+
+
+{% endblock %}

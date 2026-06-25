@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% block title %}Lista de Usuarios{% endblock %}
+
+{% block contenido %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 style="font-family:'Fredoka One',cursive;color:#993556;">
+      👥 Gestión de Usuarios
+    </h2>
+    <div class="d-flex gap-2">
+      <a href="{% url 'adm_crear_usuario' %}" class="btn btn-ls">
+        <i class="bi bi-person-plus me-2"></i>Nuevo usuario
+      </a>
+      <a href="{% url 'adm_dashboard' %}" class="btn btn-ls-outline">
+        <i class="bi bi-arrow-left me-1"></i>Volver
+      </a>
+    </div>
+  </div>
+
+  <!-- Clínicas -->
+  <h5 class="fw-bold mb-3" style="color:#993556;">
+    <i class="bi bi-building me-2"></i>Clínicas dentales
+  </h5>
+  <div class="table-responsive mb-5">
+    <table class="table ls-table align-middle">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Usuario</th>
+          <th>Nombre clínica</th>
+          <th>Email</th>
+          <th>Grupo</th>
+          <th>Activo</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in clinicas %}
+        <tr>
+          <td>{{ u.id }}</td>
+          <td><strong>{{ u.username }}</strong></td>
+          <td>{{ u.clinica.nombre_clinica }}</td>
+          <td>{{ u.email }}</td>
+          <td>
+            {% for g in u.groups.all %}
+              <span class="badge rounded-pill" style="background:#FBEAF0;color:#993556;">{{ g.name }}</span>
+            {% empty %}
+              <span class="text-muted small">Sin grupo</span>
+            {% endfor %}
+          </td>
+          <td>
+            {% if u.is_active %}
+              <span class="badge rounded-pill" style="background:#D1FAE5;color:#065F46;">Activo</span>
+            {% else %}
+              <span class="badge rounded-pill" style="background:#FEE2E2;color:#991B1B;">Inactivo</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{% url 'adm_editar_usuario' u.id %}" class="btn btn-sm btn-ls-outline">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <a href="{% url 'adm_eliminar_usuario' u.id %}" class="btn btn-sm btn-outline-danger"
+               onclick="return confirm('¿Eliminar este usuario?')">
+              <i class="bi bi-trash3"></i>
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center text-muted">No hay clínicas registradas</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Público general -->
+  <h5 class="fw-bold mb-3" style="color:#6B3FA0;">
+    <i class="bi bi-person me-2"></i>Público general
+  </h5>
+  <div class="table-responsive">
+    <table class="table ls-table align-middle">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Usuario</th>
+          <th>Nombre</th>
+          <th>Email</th>
+          <th>Grupo</th>
+          <th>Activo</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in publico %}
+        <tr>
+          <td>{{ u.id }}</td>
+          <td><strong>{{ u.username }}</strong></td>
+          <td>{{ u.get_full_name|default:"—" }}</td>
+          <td>{{ u.email }}</td>
+          <td>
+            {% for g in u.groups.all %}
+              <span class="badge rounded-pill" style="background:#ede0f5;color:#6B3FA0;">{{ g.name }}</span>
+            {% empty %}
+              <span class="text-muted small">Sin grupo</span>
+            {% endfor %}
+          </td>
+          <td>
+            {% if u.is_active %}
+              <span class="badge rounded-pill" style="background:#D1FAE5;color:#065F46;">Activo</span>
+            {% else %}
+              <span class="badge rounded-pill" style="background:#FEE2E2;color:#991B1B;">Inactivo</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{% url 'adm_editar_usuario' u.id %}" class="btn btn-sm btn-ls-outline">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <a href="{% url 'adm_eliminar_usuario' u.id %}" class="btn btn-sm btn-outline-danger"
+               onclick="return confirm('¿Eliminar este usuario?')">
+              <i class="bi bi-trash3"></i>
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center text-muted">No hay usuarios públicos registrados</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

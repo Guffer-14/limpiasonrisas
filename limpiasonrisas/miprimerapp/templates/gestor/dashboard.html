@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block title %}Panel Gestor{% endblock %}
+
+{% block contenido %}
+<div class="container py-4">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <h2 style="font-family:'Fredoka One',cursive;color:#993556;">
+      🗂️ Panel Gestor de Contenido
+    </h2>
+    <span class="badge rounded-pill" style="background:#FBEAF0;color:#993556;font-size:.85rem;">
+      {{ request.user.get_full_name|default:request.user.username }}
+    </span>
+  </div>
+
+  <!-- Stats -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="ls-stat-card" style="border-left-color:#993556;">
+        <div class="stat-number" style="color:#993556;">{{ total_productos }}</div>
+        <div class="text-muted small fw-bold">Productos en catálogo</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="ls-stat-card" style="border-left-color:#6B3FA0;">
+        <div class="stat-number" style="color:#6B3FA0;">{{ total_categorias }}</div>
+        <div class="text-muted small fw-bold">Categorías</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="ls-stat-card" style="border-left-color:#F07D3A;">
+        <div class="stat-number" style="color:#F07D3A;">{{ total_mensajes }}</div>
+        <div class="text-muted small fw-bold">Mensajes pendientes</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Accesos rápidos -->
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div class="ls-form-card p-4 text-center">
+        <i class="bi bi-box-seam" style="font-size:2.5rem;color:#993556;"></i>
+        <h5 class="mt-2 fw-bold">Productos</h5>
+        <p class="text-muted small">Gestiona el catálogo de productos</p>
+        <div class="d-grid gap-2">
+          <a href="{% url 'gestor_lista_productos' %}" class="btn btn-ls w-100">
+            <i class="bi bi-list me-2"></i>Ver productos
+          </a>
+          <a href="{% url 'gestor_crear_producto' %}" class="btn btn-ls-outline w-100">
+            <i class="bi bi-plus-circle me-2"></i>Nuevo producto
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="ls-form-card p-4 text-center">
+        <i class="bi bi-folder" style="font-size:2.5rem;color:#6B3FA0;"></i>
+        <h5 class="mt-2 fw-bold">Categorías</h5>
+        <p class="text-muted small">Gestiona las categorías del catálogo</p>
+        <div class="d-grid gap-2">
+          <a href="{% url 'gestor_lista_categorias' %}" class="btn btn-ls w-100" style="background:#6B3FA0;">
+            <i class="bi bi-list me-2"></i>Ver categorías
+          </a>
+          <a href="{% url 'gestor_crear_categoria' %}" class="btn btn-ls-outline w-100">
+            <i class="bi bi-plus-circle me-2"></i>Nueva categoría
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="ls-form-card p-4 text-center">
+        <i class="bi bi-chat-dots" style="font-size:2.5rem;color:#F07D3A;"></i>
+        <h5 class="mt-2 fw-bold">Mensajes</h5>
+        <p class="text-muted small">Revisa y responde consultas</p>
+        <a href="{% url 'gestor_mensajes' %}" class="btn btn-ls w-100" style="background:#F07D3A;">
+          <i class="bi bi-arrow-right me-2"></i>Ver mensajes
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

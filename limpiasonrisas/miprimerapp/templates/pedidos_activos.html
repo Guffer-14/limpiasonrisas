@@ -1,0 +1,108 @@
+{% extends 'base.html' %}{% load ls_filters %}
+{% block title %}Pedidos activos – {{ clinica.nombre_clinica }}{% endblock %}
+
+{% block contenido %}
+<div class="container py-4">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <h2 style="font-family:'Fredoka One',cursive;color:#993556;margin:0;">
+      📦 Pedidos activos
+    </h2>
+    <a href="{% url 'dashboard_clinica' %}" class="btn btn-ls-outline">
+      <i class="bi bi-arrow-left me-1"></i>Volver al panel
+    </a>
+  </div>
+
+  {% if pedidos %}
+  {% for pedido in pedidos %}
+  <div class="ls-form-card mb-4">
+    <div class="ls-form-header d-flex justify-content-between align-items-center">
+      <div>
+        <h5 class="mb-0">Pedido #{{ pedido.pk }}</h5>
+        <small style="opacity:.85;">{{ pedido.fecha_creacion|date:"d/m/Y H:i" }}</small>
+      </div>
+      <span class="badge rounded-pill fs-6 badge-{{ pedido.estado }}">
+        {{ pedido.get_estado_display }}
+      </span>
+    </div>
+    <div class="p-4">
+
+      <!-- Línea de tiempo de estados -->
+      <!-- Línea de tiempo de estados -->
+      <div class="d-flex align-items-center mb-4" style="overflow-x:auto;">
+        {% for estado_key, estado_label in pedido.ESTADO_CHOICES %}
+        {% if estado_key != 'cancelado' %}
+        <div class="text-center" style="flex:1;min-width:80px;">
+          <div class="mx-auto rounded-circle d-flex align-items-center justify-content-center mb-1"
+            style="width:36px;height:36px;font-size:1.1rem;
+           background:{% if pedido.estado == estado_key %}#993556{% elif pedido.estado == 'entregado' %}#4CAF50{% elif pedido.estado == 'enviado' and estado_key != 'entregado' %}#4CAF50{% elif pedido.estado == 'en_preparacion' and estado_key == 'pendiente' %}#4CAF50{% else %}#e8d5dc{% endif %};
+           color:{% if pedido.estado == estado_key or pedido.estado == 'entregado' %}white{% elif pedido.estado == 'enviado' and estado_key != 'entregado' %}white{% elif pedido.estado == 'en_preparacion' and estado_key == 'pendiente' %}white{% else %}#aaa{% endif %};">
+            {% if estado_key == 'pendiente' %}⏳
+            {% elif estado_key == 'en_preparacion' %}🔧
+            {% elif estado_key == 'enviado' %}🚚
+            {% elif estado_key == 'entregado' %}✅
+            {% endif %}
+          </div>
+          <small class="d-block" style="font-size:.72rem;
+             color:{% if pedido.estado == estado_key %}#993556{% else %}#aaa{% endif %};
+             font-weight:{% if pedido.estado == estado_key %}700{% else %}400{% endif %};">
+            {{ estado_label }}
+          </small>
+          {% for h in pedido.historial.all %}
+          {% if h.estado == estado_key %}
+          <small class="d-block" style="font-size:.65rem;color:#aaa;">{{ h.fecha|date:"d/m H:i" }}</small>
+          {% endif %}
+          {% endfor %}
+        </div>
+        {% if not forloop.last %}
+        <div style="flex:0 0 24px;height:2px;background:#e8d5dc;margin-bottom:20px;"></div>
+        {% endif %}
+        {% endif %}
+        {% endfor %}
+      </div>
+
+      <!-- Detalle productos -->
+      <table class="table table-sm ls-table">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Cant.</th>
+            <th>Precio unit.</th>
+            <th>Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for det in pedido.detalles.all %}
+          <tr>
+            <td>{{ det.producto.nombre }}</td>
+            <td>{{ det.cantidad }}</td>
+            <td>${{ det.precio_unitario|clp }}</td>
+            <td><strong>${{ det.subtotal|clp }}</strong></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3" class="text-end fw-bold">Neto</td>
+            <td class="fw-bold">${{ pedido.total|clp }}</td>
+          </tr>
+          <tr>
+            <td colspan="3" class="text-end" style="color:#993556;font-weight:700;">Total con IVA</td>
+            <td style="color:#993556;font-weight:700;">${{ pedido.total_con_iva|clp }}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+  {% endfor %}
+  {% else %}
+  <div class="text-center py-5">
+    <div style="font-size:5rem;color:#e8d5dc;">📭</div>
+    <h4 class="mt-3" style="color:#993556;">No tienes pedidos activos</h4>
+    <p class="text-muted">Todos tus pedidos han sido entregados o aún no has hecho ninguno.</p>
+    <a href="{% url 'dashboard_clinica' %}" class="btn btn-ls mt-2">
+      <i class="bi bi-cart-plus me-2"></i>Hacer un pedido
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% block title %}Panel administración{% endblock %}
+
+{% block contenido %}
+<div style="background: linear-gradient(135deg, #2c1a23, #3d1f35); padding: 40px 0 24px;">
+  <div class="container">
+    <h2 style="font-family:'Fredoka One',cursive; color:#F5C842;">
+      🛡️ Panel de administración
+    </h2>
+    <p style="color:#d4a0b8;">Solo visible para staff de Limpia Sonrisas</p>
+  </div>
+</div>
+
+<div class="container py-4">
+  <!-- Stats globales -->
+  <div class="row g-3 mb-5">
+    <div class="col-md-3">
+      <div class="ls-stat-card">
+        <div class="stat-number">{{ clinicas|length }}</div>
+        <div class="text-muted small fw-bold">Clínicas registradas</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="ls-stat-card" style="border-left-color:#6B3FA0;">
+        <div class="stat-number" style="color:#6B3FA0;">{{ solicitudes|length }}</div>
+        <div class="text-muted small fw-bold">Solicitudes recientes</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="ls-stat-card" style="border-left-color:#F5C842;">
+        <div class="stat-number" style="color:#F5C842;">{{ mensajes|length }}</div>
+        <div class="text-muted small fw-bold">Mensajes sin leer</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="ls-stat-card" style="border-left-color:#4CAF50;">
+        <div class="stat-number" style="color:#4CAF50;">
+          <a href="/admin/" style="color:inherit;">Admin →</a>
+        </div>
+        <div class="text-muted small fw-bold">Panel Django admin</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clínicas -->
+  <h5 class="fw-bold mb-3" style="color:#993556;">
+    <i class="bi bi-building me-2"></i>Clínicas registradas
+  </h5>
+  <div class="table-responsive mb-5">
+    <table class="table ls-table">
+      <thead>
+        <tr><th>Clínica</th><th>Región</th><th>Email</th><th>Rotación</th><th>Verificada</th><th>Fecha</th></tr>
+      </thead>
+      <tbody>
+        {% for c in clinicas %}
+        <tr>
+          <td><strong>{{ c.nombre_clinica }}</strong></td>
+          <td>{{ c.get_region_display }}</td>
+          <td>{{ c.email }}</td>
+          <td><small>{{ c.get_rotacion_estimada_display }}</small></td>
+          <td>
+            {% if c.verificada %}
+              <span class="badge bg-success">Sí</span>
+            {% else %}
+              <span class="badge bg-warning text-dark">Pendiente</span>
+            {% endif %}
+          </td>
+          <td><small>{{ c.fecha_inscripcion|date:"d/m/Y" }}</small></td>
+        </tr>
+        {% empty %}
+          <tr><td colspan="6" class="text-center text-muted">Sin clínicas aún</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Solicitudes -->
+  <h5 class="fw-bold mb-3" style="color:#6B3FA0;">
+    <i class="bi bi-box-seam me-2"></i>Solicitudes de stock recientes
+  </h5>
+  <div class="table-responsive mb-5">
+    <table class="table ls-table">
+      <thead>
+        <tr><th>#</th><th>Clínica</th><th>Producto</th><th>Cantidad</th><th>Estado</th><th>Fecha</th></tr>
+      </thead>
+      <tbody>
+        {% for sol in solicitudes %}
+        <tr>
+          <td>{{ sol.pk }}</td>
+          <td>{{ sol.clinica.nombre_clinica }}</td>
+          <td>{{ sol.producto.nombre }}</td>
+          <td>{{ sol.cantidad }}</td>
+          <td><span class="badge rounded-pill badge-{{ sol.estado }}">{{ sol.get_estado_display }}</span></td>
+          <td><small>{{ sol.fecha_solicitud|date:"d/m/Y" }}</small></td>
+        </tr>
+        {% empty %}
+          <tr><td colspan="6" class="text-center text-muted">Sin solicitudes</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Mensajes no leídos -->
+  <h5 class="fw-bold mb-3" style="color:#F07D3A;">
+    <i class="bi bi-envelope-exclamation me-2"></i>Mensajes sin leer
+  </h5>
+  {% for msg in mensajes %}
+  <div class="alert ls-alert mb-3" style="background:#fff8f0; border-left:4px solid #F07D3A;">
+    <strong>{{ msg.nombre }}</strong> · {{ msg.email }}
+    <span class="badge rounded-pill ms-2" style="background:#F07D3A; color:white; font-size:.75rem;">
+      {{ msg.get_tipo_consulta_display }}
+    </span>
+    <p class="mb-0 mt-1 text-muted small">{{ msg.mensaje|truncatechars:120 }}</p>
+    <small class="text-muted">{{ msg.fecha|date:"d/m/Y H:i" }}</small>
+  </div>
+  {% empty %}
+  <p class="text-muted">No hay mensajes sin leer 🎉</p>
+  {% endfor %}
+</div>
+{% endblock %}

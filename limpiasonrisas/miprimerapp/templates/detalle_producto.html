@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% load static %}{% load ls_filters %}
+{% block title %}{{ producto.nombre }}{% endblock %}
+
+{% block contenido %}
+<div class="container py-5">
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'index' %}">Inicio</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'catalogo' %}">Catálogo</a></li>
+      <li class="breadcrumb-item active">{{ producto.nombre }}</li>
+    </ol>
+  </nav>
+
+  <div class="row g-5">
+    <div class="col-md-5">
+      <div
+        style="background:#FBEAF0;border-radius:24px;padding:48px;text-align:center;min-height:320px;display:flex;align-items:center;justify-content:center;">
+        {% if producto.imagen %}
+        <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}"
+          style="max-height:280px;max-width:100%;object-fit:contain;">
+        {% else %}
+        <div style="font-size:8rem;color:rgba(153,53,86,.25);">🦷</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="col-md-7">
+      {% if producto.marca %}
+      <span class="marca-badge" style="font-size:.85rem;padding:4px 14px;">{{ producto.marca }}</span>
+      {% endif %}
+      {% if producto.categoria %}
+      <small class="text-muted d-block mt-1 mb-2">{{ producto.categoria.nombre }}</small>
+      {% endif %}
+      <h1 style="font-family:'Fredoka One',cursine;color:#2c1a23;font-size:2rem;">{{ producto.nombre }}</h1>
+      <p class="mt-3" style="color:#5a3a48;line-height:1.8;">{{ producto.descripcion }}</p>
+
+      <div class="mt-4">
+        <span class="ls-precio-badge" style="font-size:2rem;padding:8px 24px;">
+          ${{ producto.precio|clp }}
+        </span>
+        <small class="text-muted ms-2">precio público</small>
+      </div>
+
+
+       <div class="mt-3">
+        <a href="{% url 'contacto' %}" class="btn btn-ls-outline">
+          <i class="bi bi-chat-dots me-2"></i>Consultar
+        </a>
+        <button type="submit" class="btn btn-ls-outline">
+          <i class="bi bi-cart-plus me-2"></i>Lo quiero (precio público)
+        </button>
+      </div>
+
+      {% if producto.pronto_a_vencer %}
+      <div class="mt-2 alert" style="background:#FFF3CD;border-color:#ffc107;color:#856404;border-radius:12px;">
+        <i class="bi bi-clock-history me-2"></i>
+        <strong>¡Pronto a vencer!</strong> Precio especial por tiempo limitado.
+      </div>
+      {% endif %}
+
+      {% if producto.precio_volumen and producto.cantidad_minima_volumen and not producto.pronto_a_vencer %}
+      <div class="mt-2 p-3 rounded-3" style="background:#E8F5E9;border:2px solid #c8e6c9;">
+        <i class="bi bi-tags-fill me-2" style="color:#2e7d32;"></i>
+        <strong style="color:#2e7d32;">¡Precio especial por volumen!</strong><br>
+        <span class="small">
+          Si llevas <strong>{{ producto.cantidad_minima_volumen }} unidades</strong>
+          pagas solo <strong style="color:#2e7d32;">${{ producto.get_total_volumen|clp }}</strong>
+          <span class="text-muted">(${{ producto.precio_volumen|clp }} c/u en vez de ${{ producto.precio|clp }})</span>
+        </span>
+      </div>
+      {% endif %}
+
+      {% if producto.precio_pack %}
+      <div class="mt-2">
+        <span class="ls-precio-pack" style="font-size:1rem;padding:4px 16px;">
+          🎁 Pack {{ producto.unidades_pack|clp }} unidades: ${{ producto.precio_pack|clp }}
+        </span>
+      </div>
+      {% endif %}
+
+      <!-- Precio B2D y carrito: visible solo si tiene clínica registrada (pasado desde la vista) -->
+      {% if es_clinica %}
+      <div class="mt-3 p-3 rounded-3" style="background:#FBEAF0;border:2px solid #e8d5dc;">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div>
+            <small class="text-muted fw-bold d-block">Tu precio B2D (canal dental)</small>
+            <span style="font-size:1.6rem;font-weight:700;color:#993556;">
+              ${{ precio_b2d|clp }}
+            </span>
+          </div>
+          <span class="badge rounded-pill" style="background:#993556;color:white;font-size:.8rem;">Precio clínica</span>
+        </div>
+        <form method="post" class="d-flex gap-2 align-items-center">
+          {% csrf_token %}
+          <input type="number" name="cantidad" value="1" min="1" class="form-control ls-input text-center"
+            style="width:80px;">
+          <button type="submit" class="btn btn-ls flex-grow-1">
+            <i class="bi bi-cart-plus me-2"></i>Agregar al carrito (precio B2D)
+          </button>
+        </form>
+      </div>
+      {% elif user.is_authenticated %}
+      <div class="mt-3 alert" style="background:#FFF3CD;border-color:#ffc107;color:#856404;">
+        <i class="bi bi-info-circle me-2"></i>
+        <a href="{% url 'inscripcion_clinica' %}" style="color:#856404;font-weight:600;">Inscribe tu clínica</a>
+        para ver precios B2D y hacer pedidos.
+      </div>
+      {% else %}
+      <div class="mt-4">
+        <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-ls btn-lg">
+          <i class="bi bi-lock me-2"></i>Inicia sesión para precio clínica
+        </a>
+      </div>
+      {% endif %}
+
+     
+
+
+
+      <div class="mt-4 p-3 rounded-3" style="background:#f8f6f4;border:1px solid #eee;">
+        <small class="text-muted">
+          <i class="bi bi-truck me-1" style="color:#993556;"></i> Despacho a todo Chile ·
+          <i class="bi bi-shield-check me-1 ms-2" style="color:#6B3FA0;"></i> Producto original ·
+          <i class="bi bi-telephone-fill me-1 ms-2" style="color:#4CAF50;"></i> +569 6418 4917
+        </small>
+      </div>
+    </div>
+  </div>
+
+  {% if relacionados %}
+  <div class="mt-5">
+    <h3 class="ls-section-title mb-4">También te puede interesar</h3>
+    <div class="row row-cols-2 row-cols-md-4 g-3">
+      {% for rel in relacionados %}
+      <div class="col">
+        <div class="ls-product-card">
+          <div class="card-img-wrapper" style="height:120px;padding:16px;">
+            {% if rel.imagen %}<img src="{{ rel.imagen.url }}" alt="{{ rel.nombre }}">
+            {% else %}<div style="font-size:3rem;color:rgba(153,53,86,.25);">🦷</div>{% endif %}
+          </div>
+          <div class="card-body p-2">
+            <h6 class="small fw-bold mb-1">{{ rel.nombre }}</h6>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="ls-precio-badge" style="font-size:.9rem;padding:2px 10px;">${{ rel.precio|clp }}</span>
+              <a href="{% url 'detalle_producto' rel.pk %}" class="btn btn-ls btn-sm"
+                style="padding:2px 10px;font-size:.8rem;">Ver</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

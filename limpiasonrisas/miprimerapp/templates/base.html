@@ -1,0 +1,281 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Limpia Sonrisas{% endblock %} – Porque una sonrisa brillante y duradera empieza con la
+    asesoría correcta.</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/limpiasonrisas.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+
+  <!-- ══ NAVBAR ══════════════════════════════════════════════════════════════ -->
+  <nav class="navbar navbar-expand-lg ls-navbar sticky-top">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'index' %}">
+        <i class="bi bi-emoji-smile-fill" style="color:#993556; font-size:1.8rem;"></i>
+        Limpia Sonrisas
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navMain">
+        <ul class="navbar-nav me-auto gap-1">
+          <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}"
+              href="{% url 'index' %}">
+              <i class="bi bi-house-heart"></i> Inicio
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'catalogo' %}active{% endif %}"
+              href="{% url 'catalogo' %}">
+              <i class="bi bi-grid-3x3-gap"></i> Higiene oral
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'contacto' %}active{% endif %}"
+              href="{% url 'contacto' %}">
+              <i class="bi bi-chat-heart"></i> Contacto
+            </a>
+          </li>
+          {% if user.is_authenticated %}
+          {% if tiene_clinica %}
+          <li class="nav-item">
+            <a class="nav-link {% if 'dashboard' in request.resolver_match.url_name %}active{% endif %}"
+              href="{% url 'dashboard_clinica' %}">
+              <i class="bi bi-building-check"></i> Mi clínica
+            </a>
+          </li>
+          {% else %}
+          <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'mi_cuenta' %}active{% endif %}"
+              href="{% url 'mi_cuenta' %}">
+              <i class="bi bi-person-circle"></i> Mi cuenta
+            </a>
+          </li>
+          {% endif %}
+          {% if user.is_staff %}
+          <li class="nav-item">
+            <a class="nav-link text-warning fw-bold" href="{% url 'adm_dashboard' %}">
+              <i class="bi bi-shield-check"></i> Admin
+            </a>
+          </li>
+          {% endif %}
+          {% if user.groups.all.0.name == 'Gestor' %}
+          <li class="nav-item">
+            <a class="nav-link fw-bold" href="{% url 'gestor_dashboard' %}" style="color:#6B3FA0;">
+              <i class="bi bi-pencil-square"></i> Gestor
+            </a>
+          </li>
+          {% endif %}
+          {% endif %}
+        </ul>
+
+        <!-- Acciones de usuario -->
+        <div class="d-flex align-items-center gap-2">
+          
+          {% if user.is_authenticated %}
+          <a href="{% if tiene_clinica %}{% url 'dashboard_clinica' %}{% else %}{% url 'mi_cuenta' %}{% endif %}"
+            class="btn btn-ls-outline position-relative me-2 ls-carrito-link">
+            <i class="bi bi-cart3"></i>
+            {% if carrito_count > 0 %}
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill ls-carrito-badge"
+              style="background:#993556;font-size:.7rem;">
+              {{ carrito_count }}
+            </span>
+            {% endif %}
+          </a>
+          <div class="dropdown">
+            <button class="btn btn-ls btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+              <i class="bi bi-person-circle"></i> {{ user.first_name|default:user.username }}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow rounded-4">
+              {% if tiene_clinica %}
+              <li><a class="dropdown-item" href="{% url 'dashboard_clinica' %}">
+                  <i class="bi bi-building"></i> Mi panel
+                </a></li>
+              <li><a class="dropdown-item" href="{% url 'pedidos_activos' %}">
+                  <i class="bi bi-box-seam"></i> Pedidos activos
+                </a></li>
+              <li><a class="dropdown-item" href="{% url 'mis_pedidos' %}">
+                  <i class="bi bi-clock-history"></i> Mis pedidos
+                </a></li>
+              <li><a class="dropdown-item" href="{% url 'mi_stock' %}">
+                  <i class="bi bi-clipboard-data"></i> Mi stock
+                </a></li>
+              {% else %}
+              <li><a class="dropdown-item" href="{% url 'mi_cuenta' %}">
+                  <i class="bi bi-person-circle"></i> Mi cuenta
+                </a></li>
+              <li><a class="dropdown-item" href="{% url 'mi_cuenta' %}#historial">
+                  <i class="bi bi-bag-heart"></i> Mis compras
+                </a></li>
+              <li><a class="dropdown-item" href="#">
+                  <i class="bi bi-heart"></i> Mis favoritos
+                </a></li>
+              {% if not user.groups.all.0.name == 'Gestor' %}
+              <li><a class="dropdown-item" href="{% url 'inscripcion_clinica' %}">
+                  <i class="bi bi-building-add"></i> Inscribir mi clínica
+                </a></li>
+              {% endif %}
+              {% endif %}
+              {% if user.groups.all.0.name == 'Gestor' %}
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              <li><a class="dropdown-item" href="{% url 'gestor_dashboard' %}">
+                  <i class="bi bi-pencil-square"></i> Mi panel gestor
+                </a></li>
+              {% endif %}
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              <li>
+                <form method="post" action="{% url 'logout' %}">
+                  {% csrf_token %}
+                  <button class="dropdown-item text-danger" type="submit">
+                    <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+                  </button>
+                </form>
+              </li>
+            </ul>
+          </div>
+          {% else %}
+          <a href="{% url 'login' %}" class="btn btn-ls-outline btn-sm">
+            <i class="bi bi-box-arrow-in-right"></i> Ingresar
+          </a>
+          <a href="{% url 'registro' %}" class="btn btn-ls btn-sm">
+            <i class="bi bi-person-plus"></i> Registrarse
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ══ MENSAJES ════════════════════════════════════════════════════════════ -->
+  {% if messages %}
+  <div class="container mt-3">
+    {% for msg in messages %}
+    <div class="alert ls-alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show" role="alert">
+      {{ msg }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- ══ CONTENIDO PRINCIPAL ═════════════════════════════════════════════════ -->
+  {% block contenido %}{% endblock %}
+
+  <!-- ══ FOOTER ══════════════════════════════════════════════════════════════ -->
+  <footer class="ls-footer">
+    <div class="container">
+      <div class="row g-4">
+        <!-- Brand -->
+        <div class="col-lg-4">
+          <div class="footer-brand mb-3">
+            <i class="bi bi-emoji-smile-fill me-2" style="color:#F5C842;"></i>Limpia Sonrisas
+          </div>
+          <p style="color:#d4a0b8; font-size:.95rem;">
+            Porque una sonrisa brillante y duradera empieza con la asesoría correcta. 🦷
+          </p>
+          <div class="d-flex gap-3 mt-3">
+            <a href="https://wa.me/56964184917" target="_blank" class="fs-4">
+              <i class="bi bi-whatsapp text-success"></i>
+            </a>
+            <a href="https://instagram.com" target="_blank" class="fs-4">
+              <i class="bi bi-instagram" style="color:#E1306C;"></i>
+            </a>
+            <a href="https://facebook.com" target="_blank" class="fs-4">
+              <i class="bi bi-facebook" style="color:#4267B2;"></i>
+            </a>
+          </div>
+        </div>
+        <!-- Links Soluciones -->
+        <div class="col-lg-2 col-6">
+          <h5>Soluciones</h5>
+          <ul class="list-unstyled">
+            <li><a href="{% url 'catalogo' %}?categoria=8">Cuidado dental adulto</a></li>
+            <li><a href="{% url 'catalogo' %}?categoria=3">Bebés e Infantil</a></li>
+            <li><a href="{% url 'catalogo' %}?categoria=4">Ortodoncia</a></li>
+            <li><a href="{% url 'catalogo' %}?categoria=6">Higiene bucal</a></li>
+            <li><a href="{% url 'catalogo' %}">Ver todo</a></li>
+          </ul>
+        </div>
+        <!-- Empresa -->
+        <div class="col-lg-2 col-6">
+          <h5>Empresa</h5>
+          <ul class="list-unstyled">
+            <li><a href="{% url 'index' %}#nosotros">Sobre nosotros</a></li>
+            <li><a href="{% url 'contacto' %}">Contacto</a></li>
+            <li><a href="{% url 'inscripcion_clinica' %}">Soy clínica</a></li>
+            <li><a href="{% url 'registro' %}">Registrarse</a></li>
+          </ul>
+        </div>
+        <!-- Contacto -->
+        <div class="col-lg-4">
+          <h5>Contacto directo</h5>
+          <p style="color:#d4a0b8;">
+            <i class="bi bi-whatsapp text-success me-2"></i>+569 6418 4917<br>
+            <i class="bi bi-envelope-heart me-2" style="color:#F5C842;"></i>limpiasonrisas.spa@gmail.com<br>
+            <i class="bi bi-geo-alt me-2" style="color:#F5C842;"></i>Temuco, La Araucanía, Chile<br>
+            <i class="bi bi-clock me-2" style="color:#F5C842;"></i>Lun–Vie 9:00–18:00
+          </p>
+          <a href="https://wa.me/56964184917" target="_blank" class="btn btn-ls btn-sm mt-2">
+            <i class="bi bi-whatsapp"></i> WhatsApp
+          </a>
+        </div>
+      </div>
+      <!-- Marcas -->
+      <div class="row mt-5">
+        <div class="col-12 text-center" style="color:#7a4060; font-size:.8rem;">
+          Las marcas que los dentistas confían:
+          <strong class="text-white ms-2">CURAPROX · VITIS · PHB · ORAL-B · ELMEX · INTERPROX · OXYFRESH · COLGATE ·
+            WATERPIK · BLISTEX</strong>
+        </div>
+      </div>
+      <div class="ls-footer-bottom text-center">
+        © 2024 Limpia Sonrisas · Temuco, Chile ·
+        Desarrollado con ❤️ y Django por Valentina Osorio
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  {% block extra_js %}{% endblock %}
+  <!-- Botón modo sereno -->
+  <button class="btn-tema" onclick="toggleTema()" id="btnTema">
+    🌿 Modo tranquilo
+  </button>
+
+  <script>
+    function toggleTema() {
+      const body = document.body;
+      const btn = document.getElementById('btnTema');
+      body.classList.toggle('modo-sereno');
+      if (body.classList.contains('modo-sereno')) {
+        btn.innerHTML = '🌸 Modo normal';
+        localStorage.setItem('tema', 'sereno');
+      } else {
+        btn.innerHTML = '🌿 Modo tranquilo';
+        localStorage.setItem('tema', 'normal');
+      }
+    }
+
+    if (localStorage.getItem('tema') === 'sereno') {
+      document.body.classList.add('modo-sereno');
+      document.getElementById('btnTema').innerHTML = '🌸 Modo normal';
+    }
+  </script>
+</body>
+
+</html>

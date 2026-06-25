@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block contenido %}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow" style="background-color: #fbeaf0;">
+            <div class="card-header bg-dark text-white text-center">
+                <h4>Contáctanos</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <!-- Nombre -->
+                    <div class="mb-3">
+                        <label class="form-label text-muted" style="font-size:12px;">Nombre</label>
+                        <div class="input-group">
+                            <span class="input-group-text border-end-0" style="background-color: #993556;">
+                                <i class="bi bi-person" style="color: white;"></i>
+                            </span>
+                            {{ form.nombre }}
+                        </div>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="mb-3">
+                        <label class="form-label text-muted" style="font-size:12px;">Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text border-end-0" style="background-color: #993556;">
+                                <i class="bi bi-envelope" style="color: white;"></i>
+                            </span>
+                            {{ form.email }}
+                        </div>
+                    </div>
+
+                    <!-- Mensaje -->
+                    <div class="mb-3">
+                        <label class="form-label text-muted" style="font-size:12px;">Mensaje</label>
+                        <div class="input-group">
+                            <span class="input-group-text border-end-0 align-items-start pt-2"
+                                style="background-color: #993556;">
+                                <i class="bi bi-chat-left-text" style="color: white;"></i>
+                            </span>
+                            {{ form.mensaje }}
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn" style="background:#993556; color:#FBEAF0; border:none;">
+                            Enviar
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

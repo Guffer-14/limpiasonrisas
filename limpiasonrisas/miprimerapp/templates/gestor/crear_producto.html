@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}Crear Producto — Gestor{% endblock %}
+
+{% block contenido %}
+<div class="container py-4" style="max-width:700px;">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 style="font-family:'Fredoka One',cursive;color:#993556;">
+      ➕ Nuevo Producto
+    </h2>
+    <a href="{% url 'gestor_lista_productos' %}" class="btn btn-ls-outline">
+      <i class="bi bi-arrow-left me-1"></i>Volver
+    </a>
+  </div>
+
+  <div class="ls-form-card">
+    <div class="ls-form-header">
+      <h5 class="mb-0"><i class="bi bi-box-seam me-2"></i>Datos del producto</h5>
+    </div>
+    <div class="p-4">
+      <div class="alert mb-3" style="background:#FEF3C7;border:1px solid #F59E0B;font-size:.85rem;">
+        <i class="bi bi-info-circle me-2" style="color:#92400E;"></i>
+        <strong style="color:#92400E;">Nota:</strong> El precio y costo solo puede editarlos el Administrador.
+      </div>
+      <form method="post">
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-md-8">
+            <label class="form-label fw-semibold small">Nombre *</label>
+            <input type="text" name="nombre" class="form-control ls-input" placeholder="Nombre del producto" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small">Marca</label>
+            <input type="text" name="marca" class="form-control ls-input" placeholder="Marca">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold small">Categoría</label>
+            <select name="categoria" class="form-select ls-input">
+              <option value="">-- Sin categoría --</option>
+              {% for cat in categorias %}
+              <option value="{{ cat.id }}">{{ cat.nombre }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold small">Stock inicial</label>
+            <div class="form-control ls-input" style="background:#f8f6f4; color:#9C6A50;">
+              0 unidades
+            </div>
+            <div class="form-text">
+              <i class="bi bi-info-circle"></i> Se carga al registrar la compra en el módulo Compras (administrador).
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold small">Descripción</label>
+            <textarea name="descripcion" class="form-control ls-input" rows="3"
+              placeholder="Descripción del producto…"></textarea>
+          </div>
+          <div class="col-md-4">
+            <div class="form-check mt-2">
+              <input class="form-check-input" type="checkbox" name="activo" id="activo" checked>
+              <label class="form-check-label" for="activo">Activo</label>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="form-check mt-2">
+              <input class="form-check-input" type="checkbox" name="destacado" id="destacado">
+              <label class="form-check-label" for="destacado">Destacado ⭐</label>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="form-check mt-2">
+              <input class="form-check-input" type="checkbox" name="pronto_a_vencer" id="pronto_a_vencer">
+              <label class="form-check-label" for="pronto_a_vencer">Pronto a vencer ⚠️</label>
+            </div>
+          </div>
+        </div>
+        <div class="d-grid mt-4">
+          <button type="submit" class="btn btn-ls">
+            <i class="bi bi-check-circle me-2"></i>Crear producto
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

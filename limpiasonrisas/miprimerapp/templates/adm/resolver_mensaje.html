@@ -1,0 +1,285 @@
+{% extends 'base.html' %}
+{% block title %}Detalle del mensaje{% endblock %}
+
+{% block contenido %}
+<div class="container py-4" style="max-width:700px;">
+  <div class="mb-4">
+    <h2 style="font-family:'Fredoka One',cursive;color:#993556;">
+      💬 Detalle del mensaje
+    </h2>
+  </div>
+
+  <!-- Aviso bloqueado -->
+  {% if bloqueado %}
+  <div class="alert mb-4 p-3 rounded-3" style="background:#FEF3C7;border:1px solid #F59E0B;">
+    <i class="bi bi-exclamation-triangle me-2" style="color:#92400E;"></i>
+    <strong style="color:#92400E;">Este caso está siendo atendido por
+      {{ mensaje.tomado_por.get_full_name|default:mensaje.tomado_por.username }}
+    </strong>
+    desde {{ mensaje.fecha_tomado|date:"d/m/Y H:i" }}.
+    <form method="post" class="d-inline ms-2">
+      {% csrf_token %}
+      <input type="hidden" name="accion" value="tomar">
+      <button type="submit" class="btn btn-sm btn-ls">
+        <i class="bi bi-person-check me-1"></i>Tomar el caso
+      </button>
+    </form>
+  </div>
+  {% endif %}
+
+  <!-- Datos del mensaje -->
+  <div class="ls-form-card mb-4">
+    <div class="ls-form-header">
+      <h5 class="mb-0">
+        <i class="bi bi-person me-2"></i>{{ mensaje.nombre }}
+        {% if mensaje.estado_caso == 'pendiente' %}
+          <span class="badge rounded-pill ms-2" style="background:#FEF3C7;color:#92400E;">⏳ Pendiente</span>
+        {% elif mensaje.estado_caso == 'en_proceso' %}
+          <span class="badge rounded-pill ms-2" style="background:#DBEAFE;color:#1E40AF;">🔄 En proceso</span>
+        {% else %}
+          <span class="badge rounded-pill ms-2" style="background:#D1FAE5;color:#065F46;">✅ Resuelto</span>
+        {% endif %}
+      </h5>
+    </div>
+    <div class="p-4">
+      <div class="row g-3" style="font-size:.9rem;">
+        <div class="col-md-6">
+          <span class="text-muted small">Fecha:</span><br>
+          <strong>{{ mensaje.fecha|date:"d/m/Y H:i" }}</strong>
+        </div>
+        <div class="col-md-6">
+          <span class="text-muted small">Tipo:</span><br>
+          <span class="badge rounded-pill" style="background:#FBEAF0;color:#993556;">
+            {{ mensaje.get_tipo_consulta_display }}
+          </span>
+        </div>
+        <div class="col-md-6">
+          <span class="text-muted small">Email:</span><br>
+          <a href="mailto:{{ mensaje.email }}">{{ mensaje.email }}</a>
+        </div>
+        <div class="col-md-6">
+          <span class="text-muted small">Teléfono:</span><br>
+          <strong>{{ mensaje.telefono|default:"—" }}</strong>
+        </div>
+        {% if mensaje.es_clinica %}
+        <div class="col-md-6">
+          <span class="text-muted small">Tipo:</span><br>
+          <strong>🦷 Clínica dental</strong>
+        </div>
+        {% endif %}
+        <div class="col-12">
+          <span class="text-muted small">Mensaje:</span><br>
+          <div class="p-3 rounded-3 mt-1" style="background:#f8f6f4;">{{ mensaje.mensaje }}</div>
+        </div>
+        {% if mensaje.adjunto %}
+        <div class="col-12">
+          <a href="{{ mensaje.adjunto.url }}" target="_blank" class="btn btn-sm btn-ls-outline">
+            <i class="bi bi-paperclip me-1"></i>Ver adjunto
+          </a>
+        </div>
+        {% endif %}
+        <div class="col-12">
+          <a href="mailto:{{ mensaje.email }}?subject=Re: {{ mensaje.get_tipo_consulta_display }}&body=Hola {{ mensaje.nombre }},%0D%0A%0D%0A"
+             class="btn btn-ls-outline">
+            <i class="bi bi-envelope me-2"></i>Responder por email
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tomar caso si está pendiente -->
+  {% if not bloqueado and mensaje.estado_caso == 'pendiente' %}
+  <div class="ls-form-card mb-4">
+    <div class="p-4 text-center">
+      <p class="text-muted small mb-3">Este caso aún no ha sido tomado por nadie.</p>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="tomar">
+        <button type="submit" class="btn btn-ls">
+          <i class="bi bi-person-check me-2"></i>Tomar este caso
+        </button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Historial de notas -->
+  <div class="ls-form-card mb-4">
+    <div class="ls-form-header">
+      <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Historial del caso</h5>
+    </div>
+    <div class="p-4">
+      {% if notas %}
+      <table class="table ls-table align-middle mb-0" style="font-size:.85rem;">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Hora</th>
+            <th>Quién</th>
+            <th>Rol</th>
+            <th>Canal</th>
+            <th>Nota</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for nota in notas %}
+          <tr>
+            <td><small>{{ nota.fecha|date:"d/m/Y" }}</small></td>
+            <td><small>{{ nota.fecha|date:"H:i" }}</small></td>
+            <td>
+              <small><strong>{{ nota.autor.get_full_name|default:nota.autor.username }}</strong></small>
+              {% if nota.consulta_vinculada %}
+              <br><small class="text-muted">{{ nota.consulta_vinculada.nombre }}</small>
+              {% endif %}
+            </td>
+            <td><small class="text-muted">{{ nota.autor.groups.first.name|default:"ADM" }}</small></td>
+            <td>
+              <span class="badge rounded-pill" style="background:#FBEAF0;color:#993556;font-size:.75rem;">
+                {{ nota.get_canal_display }}
+              </span>
+            </td>
+            <td><small>{{ nota.nota }}</small></td>
+            <td>
+              {% if nota.consulta_vinculada %}
+              <button class="btn btn-sm btn-ls-outline" style="font-size:.75rem;"
+                      onclick="toggleDetalle('det-{{ nota.pk }}', this)">
+                <i class="bi bi-eye me-1"></i>Ver detalle
+              </button>
+              {% endif %}
+            </td>
+          </tr>
+          {% if nota.consulta_vinculada %}
+          <tr id="det-{{ nota.pk }}" style="display:none;">
+            <td colspan="7" style="padding:0;">
+              <div style="background:#fdfbfc;padding:12px 24px;border-bottom:1px solid #f0e6ec;">
+                <small class="text-muted fw-semibold">Consulta vinculada — {{ nota.consulta_vinculada.nombre }}</small>
+                <p class="mt-2 mb-1" style="font-size:.85rem;">{{ nota.consulta_vinculada.mensaje }}</p>
+                {% if nota.consulta_vinculada.adjunto %}
+                <a href="{{ nota.consulta_vinculada.adjunto.url }}" target="_blank"
+                   class="btn btn-sm btn-ls-outline mt-1">
+                  <i class="bi bi-paperclip me-1"></i>Ver adjunto
+                </a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="text-muted small mb-0">Aún no hay notas en este caso.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Agregar nota -->
+  {% if not bloqueado and mensaje.estado_caso == 'en_proceso' %}
+  <div class="ls-form-card mb-4">
+    <div class="ls-form-header">
+      <h5 class="mb-0"><i class="bi bi-journal-plus me-2"></i>Agregar nota de seguimiento</h5>
+    </div>
+    <div class="p-4">
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="nota">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small">Canal</label>
+            <select name="canal" class="form-select ls-input">
+              <option value="email">📧 Email</option>
+              <option value="whatsapp">💬 WhatsApp</option>
+              <option value="llamada">📞 Llamada telefónica</option>
+              <option value="presencial">🏢 Presencial</option>
+              <option value="otro">🌐 Otro</option>
+            </select>
+          </div>
+          <div class="col-md-8">
+            <label class="form-label fw-semibold small">Nota</label>
+            <textarea name="nota" class="form-control ls-input" rows="2"
+                      placeholder="Ej: Se contactó al cliente por WhatsApp…" required></textarea>
+          </div>
+        </div>
+        <div class="mt-3 text-end">
+          <button type="submit" class="btn btn-ls">
+            <i class="bi bi-save me-2"></i>Guardar nota
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Resolver -->
+  <div class="ls-form-card mb-4">
+    <div class="ls-form-header">
+      <h5 class="mb-0"><i class="bi bi-check-circle me-2"></i>Marcar como resuelto</h5>
+    </div>
+    <div class="p-4">
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="resolver">
+        <div class="mb-3">
+          <label class="form-label fw-semibold small">Nota de resolución</label>
+          <textarea name="nota_resolucion" class="form-control ls-input" rows="3"
+                    placeholder="Ej: Se respondió por email, cliente satisfecho…"></textarea>
+        </div>
+        <div class="d-grid">
+          <button type="submit" class="btn btn-ls">
+            <i class="bi bi-check-circle me-2"></i>Marcar como resuelto
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Resolución final -->
+  {% if mensaje.estado_caso == 'resuelto' %}
+  <div class="ls-form-card mb-4">
+    <div class="ls-form-header">
+      <h5 class="mb-0"><i class="bi bi-check-circle me-2"></i>Resolución</h5>
+    </div>
+    <div class="p-4" style="font-size:.9rem;">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <span class="text-muted small">Resuelto por:</span><br>
+          <strong>{{ mensaje.resuelto_por.get_full_name|default:mensaje.resuelto_por.username }}</strong>
+          <span class="text-muted small ms-2">({{ mensaje.resuelto_por.groups.first.name|default:"ADM" }})</span>
+        </div>
+        <div class="col-md-6">
+          <span class="text-muted small">Fecha resolución:</span><br>
+          <strong>{{ mensaje.fecha_resolucion|date:"d/m/Y H:i" }}</strong>
+        </div>
+        {% if mensaje.nota_resolucion %}
+        <div class="col-12">
+          <span class="text-muted small">Nota de resolución:</span><br>
+          <div class="p-3 rounded-3 mt-1" style="background:#f0f9f4;">{{ mensaje.nota_resolucion }}</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Volver: siempre visible, sin importar el estado del caso -->
+  <div class="d-grid">
+    <a href="{% url 'adm_lista_mensajes' %}" class="btn btn-ls-outline">
+      <i class="bi bi-arrow-left me-1"></i>Volver
+    </a>
+  </div>
+
+</div>
+
+<script>
+function toggleDetalle(id, btn) {
+  const row = document.getElementById(id);
+  const visible = row.style.display !== 'none';
+  row.style.display = visible ? 'none' : 'table-row';
+  btn.innerHTML = visible
+    ? '<i class="bi bi-eye me-1"></i>Ver detalle'
+    : '<i class="bi bi-chevron-up me-1"></i>Cerrar';
+}
+</script>
+{% endblock %}

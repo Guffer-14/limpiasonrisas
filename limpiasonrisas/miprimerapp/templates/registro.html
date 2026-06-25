@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+{% block title %}Crear cuenta{% endblock %}
+
+{% block contenido %}
+<style>
+  .btn-ojo {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #993556;
+    padding: 0;
+    line-height: 1;
+  }
+
+  .btn-ojo:focus {
+    outline: none;
+  }
+</style>
+
+<div class="ls-auth-page py-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-7 col-lg-6">
+        <div class="text-center mb-4">
+          <div style="font-size:3rem;">✨</div>
+          <p style="font-family:'Fredoka One',cursive; font-size:1.4rem; color:#993556;">Crear cuenta</p>
+        </div>
+        <div class="ls-form-card">
+          <div class="ls-form-header">
+            <h3>Registro</h3>
+            <p class="mb-0 mt-1" style="opacity:.85; font-size:.9rem;">
+              Únete a nuestra comunidad y cuida tu sonrisa con productos profesionales y asesoría experta.
+            </p>
+          </div>
+          <div class="ls-form-body">
+            {% if form.errors %}
+            <div class="alert ls-alert alert-danger">
+              <i class="bi bi-exclamation-triangle me-2"></i>
+              Por favor corrige los errores.
+            </div>
+            {% endif %}
+            <form method="post" novalidate>
+              {% csrf_token %}
+              <div class="row g-3">
+
+                <div class="col-md-6">
+                  <label class="form-label">Nombre *</label>
+                  {{ form.first_name }}
+                  {% if form.first_name.errors %}<div class="text-danger small">{{ form.first_name.errors }}</div>{% endif %}
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label">Apellido *</label>
+                  {{ form.last_name }}
+                  {% if form.last_name.errors %}<div class="text-danger small">{{ form.last_name.errors }}</div>{% endif %}
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label">Nombre de usuario *</label>
+                  {{ form.username }}
+                  {% if form.username.errors %}<div class="text-danger small">{{ form.username.errors }}</div>{% endif %}
+                  <div id="username-feedback" class="small mt-1"></div>
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label">Email *</label>
+                  {{ form.email }}
+                  {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors }}</div>{% endif %}
+                  <div id="email-feedback" class="small mt-1"></div>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label">Contraseña *</label>
+                  <div class="position-relative">
+                    {{ form.password1 }}
+                    <button type="button" class="btn-ojo" onclick="togglePassword('id_password1', this)"
+                      title="Mostrar/ocultar contraseña">
+                      <i class="bi bi-eye-slash"></i>
+                    </button>
+                  </div>
+                  {% if form.password1.errors %}<div class="text-danger small">{{ form.password1.errors }}</div>{% endif %}
+                  <div id="password1-feedback" class="small mt-1"></div>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label">Repetir contraseña *</label>
+                  <div class="position-relative">
+                    {{ form.password2 }}
+                    <button type="button" class="btn-ojo" onclick="togglePassword('id_password2', this)"
+                      title="Mostrar/ocultar contraseña">
+                      <i class="bi bi-eye-slash"></i>
+                    </button>
+                  </div>
+                  {% if form.password2.errors %}<div class="text-danger small">{{ form.password2.errors }}</div>{% endif %}
+                  <div id="password2-feedback" class="small mt-1"></div>
+                </div>
+
+              </div>
+              <div class="d-grid mt-4">
+                <button type="submit" id="btn-crear-cuenta" class="btn btn-ls btn-lg">
+                  <i class="bi bi-person-check me-2"></i>Crear cuenta
+                </button>
+              </div>
+            </form>
+            <p class="text-center mt-3 mb-0 text-muted">
+              ¿Ya tienes cuenta?
+              <a href="{% url 'login' %}" style="color:#993556; font-weight:700;">Inicia sesión</a>
+            </p>
+            <p class="text-center mt-2 mb-0">
+              <a href="{% url 'password_reset' %}" style="color:#993556; font-size:.9rem;">
+                <i class="bi bi-key me-1"></i>¿Olvidaste tu contraseña?
+              </a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function togglePassword(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon = btn.querySelector('i');
+
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.className = 'bi bi-eye';
+    } else {
+      input.type = 'password';
+      icon.className = 'bi bi-eye-slash';
+    }
+  }
+
+  // ── Validación en tiempo real (sin recargar la página) ──────────────────
+  // Objetivo: que la persona nunca pierda lo que escribió (ej. la contraseña)
+  // por un error en otro campo. El servidor sigue validando todo al final,
+  // esto solo evita la mayoría de los reenvíos innecesarios.
+  document.addEventListener('DOMContentLoaded', function () {
+    const campoUsername = document.getElementById('id_username');
+    const campoEmail     = document.getElementById('id_email');
+    const campoPass1     = document.getElementById('id_password1');
+    const campoPass2     = document.getElementById('id_password2');
+    const btnSubmit      = document.getElementById('btn-crear-cuenta');
+
+    const fbUsername = document.getElementById('username-feedback');
+    const fbEmail     = document.getElementById('email-feedback');
+    const fbPass1     = document.getElementById('password1-feedback');
+    const fbPass2     = document.getElementById('password2-feedback');
+
+    const estado = { username: null, email: null, pass1: null, pass2: null };
+
+    function pintar(el, ok, mensaje) {
+      el.innerHTML = mensaje
+        ? `<span class="${ok ? 'text-success' : 'text-danger'}">
+             <i class="bi ${ok ? 'bi-check-circle' : 'bi-x-circle'}"></i> ${mensaje}
+           </span>`
+        : '';
+    }
+
+    function actualizarBoton() {
+      const todoOk = Object.values(estado).every(v => v === true);
+      btnSubmit.disabled = !todoOk;
+      btnSubmit.classList.toggle('btn-ls', todoOk);
+      btnSubmit.classList.toggle('btn-secondary', !todoOk);
+    }
+
+    function debounce(fn, espera) {
+      let temporizador;
+      return function (...args) {
+        clearTimeout(temporizador);
+        temporizador = setTimeout(() => fn.apply(this, args), espera);
+      };
+    }
+
+    function consultarDisponibilidad(campo, valor) {
+      return fetch(`{% url 'verificar_disponibilidad' %}?campo=${campo}&valor=${encodeURIComponent(valor)}`)
+        .then(r => r.json())
+        .then(data => data.disponible)
+        .catch(() => true);
+    }
+
+    const revisarUsername = debounce(function () {
+      const valor = campoUsername.value.trim();
+      if (!valor) { estado.username = null; pintar(fbUsername, false, ''); actualizarBoton(); return; }
+      consultarDisponibilidad('username', valor).then(function (disponible) {
+        estado.username = disponible;
+        pintar(fbUsername, disponible, disponible ? 'Disponible' : 'Este nombre de usuario ya existe');
+        actualizarBoton();
+      });
+    }, 450);
+
+    const revisarEmail = debounce(function () {
+      const valor = campoEmail.value.trim();
+      const formatoValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(valor);
+      if (!valor) { estado.email = null; pintar(fbEmail, false, ''); actualizarBoton(); return; }
+      if (!formatoValido) {
+        estado.email = false;
+        pintar(fbEmail, false, 'Formato de correo inválido');
+        actualizarBoton();
+        return;
+      }
+      consultarDisponibilidad('email', valor).then(function (disponible) {
+        estado.email = disponible;
+        pintar(fbEmail, disponible, disponible ? 'Disponible' : 'Ya existe una cuenta con este correo');
+        actualizarBoton();
+      });
+    }, 450);
+
+    function revisarPasswords() {
+      const p1 = campoPass1.value;
+      const p2 = campoPass2.value;
+
+      if (!p1) {
+        estado.pass1 = null; pintar(fbPass1, false, '');
+      } else if (p1.length < 8) {
+        estado.pass1 = false; pintar(fbPass1, false, 'Debe tener al menos 8 caracteres');
+      } else {
+        estado.pass1 = true; pintar(fbPass1, true, 'Contraseña válida');
+      }
+
+      if (!p2) {
+        estado.pass2 = null; pintar(fbPass2, false, '');
+      } else if (p2 !== p1) {
+        estado.pass2 = false; pintar(fbPass2, false, 'Las contraseñas no coinciden');
+      } else {
+        estado.pass2 = true; pintar(fbPass2, true, 'Coincide');
+      }
+
+      actualizarBoton();
+    }
+
+    campoUsername.addEventListener('input', revisarUsername);
+    campoEmail.addEventListener('input', revisarEmail);
+    campoPass1.addEventListener('input', revisarPasswords);
+    campoPass2.addEventListener('input', revisarPasswords);
+
+    actualizarBoton();
+  });
+</script>
+
+{% endblock %}

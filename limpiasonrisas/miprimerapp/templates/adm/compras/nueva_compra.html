@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+{% load l10n %}
+{% block title %}Nueva Compra{% endblock %}
+
+{% block contenido %}
+<div class="container py-4" style="max-width:1000px;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 style="font-family:'Fredoka One',cursive;color:var(--ls-morado);">
+            🚚 Registrar Compra
+        </h2>
+        <a href="{% url 'adm_lista_compras' %}" class="btn btn-ls-outline">
+            <i class="bi bi-arrow-left me-1"></i>Volver
+        </a>
+    </div>
+
+    <div class="ls-form-card">
+        <div class="ls-form-header">
+            <h5 class="mb-0"><i class="bi bi-truck me-2"></i>Datos de la compra</h5>
+        </div>
+        <div class="p-4">
+            <form method="post" id="formCompra">
+                {% csrf_token %}
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold small">Tipo de ingreso *</label>
+                    <div class="d-flex gap-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="tipo" value="compra" id="tipoCompra"
+                                checked onchange="cambiarTipo()">
+                            <label class="form-check-label" for="tipoCompra">Compra con factura</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="tipo" value="inicial" id="tipoInicial"
+                                onchange="cambiarTipo()">
+                            <label class="form-check-label" for="tipoInicial">Stock inicial / ajuste (sin
+                                factura)</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold small">Proveedor</label>
+                        <input type="text" name="proveedor" id="proveedor" class="form-control ls-input"
+                            list="listaProveedores" placeholder="Nombre del proveedor" autocomplete="off">
+                        <datalist id="listaProveedores">
+                            {% for prov in proveedores %}
+                            <option value="{{ prov }}">
+                                {% endfor %}
+                        </datalist>
+                    </div>
+
+                    <div class="col-md-3" id="campoFactura">
+                        <label class="form-label fw-semibold small">N° Factura *</label>
+                        <input type="text" name="numero_factura" class="form-control ls-input"
+                            placeholder="Ej: FAC-2024-089">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold small">Fecha de compra *</label>
+                        <input type="date" name="fecha_compra" class="form-control ls-input" required>
+                    </div>
+
+                    <div class="col-md-2" id="campoFlete">
+                        <label class="form-label fw-semibold small">
+                            Flete total
+                            <i class="bi bi-question-circle" data-bs-toggle="tooltip"
+                                title="El flete se reparte automáticamente entre todos los productos de esta compra, según la cantidad de cada uno. Ej: flete $50.000 ÷ 100 unidades totales = $500 por unidad."></i>
+                        </label>
+                        <input type="number" name="flete_total" id="flete_total" class="form-control ls-input"
+                            placeholder="0" value="0">
+                    </div>
+                </div>
+
+                <div class="mb-4" id="campoMotivo" style="display:none;">
+                    <label class="form-label fw-semibold small">Motivo del ajuste / stock inicial *</label>
+                    <textarea name="motivo" class="form-control ls-input" rows="2"
+                        placeholder="Ej: Stock existente al implementar el sistema. Conteo físico realizado el 18/06/2026."></textarea>
+                </div>
+
+                <hr class="my-4">
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0 fw-bold" style="color:var(--ls-morado);">Productos de esta compra</h6>
+
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table align-middle" id="tablaProductos">
+                        <thead class="ls-table">
+                            <tr>
+                                <th style="min-width:220px;">Producto</th>
+                                <th style="min-width:120px;">N° Lote *</th>
+                                <th style="min-width:160px;">
+                                    Vencimiento *
+                                    <i class="bi bi-question-circle" data-bs-toggle="tooltip"
+                                        title="Si el envase solo indica mes y año, usa el último día de ese mes. Si solo indica el año, usa el 31 de diciembre de ese año. Si el producto no vence, marca la casilla 'No vence'."></i>
+                                </th>
+                                <th style="min-width:90px;">Cantidad</th>
+                                <th style="min-width:120px;">
+                                    Costo unit. s/IVA
+                                    <i class="bi bi-question-circle" data-bs-toggle="tooltip"
+                                        title="Costo de compra por unidad, sin IVA y sin flete. El sistema suma el flete proporcional automáticamente."></i>
+                                </th>
+                                <th style="width:40px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="cuerpoTabla">
+                            <!-- filas dinámicas -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="d-grid gap-2 mt-4">
+                    <button type="button" class="btn btn-ls-outline" onclick="agregarFila()">
+                        <i class="bi bi-plus-circle me-1"></i>Agregar producto
+                    </button>
+                    <button type="submit" class="btn btn-ls">
+                        <i class="bi bi-check-circle me-2"></i>Registrar compra
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Datalist global de productos, reutilizado en cada fila -->
+<datalist id="listaProductos">
+    {% for p in productos %}
+    <option value="{{ p.nombre }}{% if p.marca %} ({{ p.marca }}){% endif %}" data-id="{{ p.id }}">
+        {% endfor %}
+</datalist>
+
+<template id="filaTemplate">
+    <tr>
+        <td>
+            <input type="text" name="nombre_producto_texto[]" class="form-control ls-input buscador-producto" list="listaProductos"
+                placeholder="Escribe para buscar..." autocomplete="off" required onchange="resolverProducto(this)">
+            <input type="hidden" name="producto_id[]" class="producto-id-oculto">
+            <small class="texto-no-encontrado text-danger" style="display:none;">
+                <i class="bi bi-exclamation-triangle-fill"></i> No existe en el catálogo.
+                <a href="{% url 'adm_crear_producto' %}" target="_blank" class="fw-semibold">+ Crear producto nuevo</a>
+            </small>
+        </td>
+        <td><input type="text" name="numero_lote[]" class="form-control ls-input" placeholder="L-01 o SIN_LOTE"
+                required></td>
+        <td>
+            <input type="date" name="fecha_vencimiento[]" class="form-control ls-input fecha-venc-input">
+            <div class="form-check mt-1">
+                <input class="form-check-input no-vence-checkbox" type="checkbox" onchange="toggleNoVence(this)">
+                <label class="form-check-label small text-muted">No vence</label>
+                <input type="hidden" name="no_vence[]" class="no-vence-oculto" value="0">
+            </div>
+        </td>
+        <td><input type="number" name="cantidad[]" class="form-control ls-input" placeholder="0" min="1" required></td>
+        <td><input type="number" name="costo_unitario[]" class="form-control ls-input" placeholder="0" min="0"></td>
+        <td>
+            <button type="button" class="btn btn-sm text-danger" onclick="this.closest('tr').remove()">
+                <i class="bi bi-trash"></i>
+            </button>
+        </td>
+    </tr>
+</template>
+
+<script>
+    function agregarFila() {
+        const template = document.getElementById('filaTemplate');
+        const clone = template.content.cloneNode(true);
+        document.getElementById('cuerpoTabla').appendChild(clone);
+    }
+
+    // Cuando el usuario elige un producto del datalist, busca su ID real y lo guarda en el campo oculto
+    function resolverProducto(input) {
+        const datalist = document.getElementById('listaProductos');
+        const opciones = datalist.querySelectorAll('option');
+        const fila = input.closest('tr');
+        const campoOculto = fila.querySelector('.producto-id-oculto');
+        const avisoNoEncontrado = fila.querySelector('.texto-no-encontrado');
+
+        let encontrado = false;
+        opciones.forEach(function (opt) {
+            if (opt.value === input.value) {
+                campoOculto.value = opt.dataset.id;
+                encontrado = true;
+            }
+        });
+
+        if (!encontrado) {
+            campoOculto.value = '';
+            input.classList.add('is-invalid');
+            if (avisoNoEncontrado) avisoNoEncontrado.style.display = input.value.trim() ? 'block' : 'none';
+        } else {
+            input.classList.remove('is-invalid');
+            if (avisoNoEncontrado) avisoNoEncontrado.style.display = 'none';
+        }
+    }
+
+    function cambiarTipo() {
+        const esInicial = document.getElementById('tipoInicial').checked;
+        document.getElementById('campoMotivo').style.display = esInicial ? 'block' : 'none';
+        document.getElementById('campoFactura').style.display = esInicial ? 'none' : 'block';
+    }
+
+    function toggleNoVence(checkbox) {
+        const fila = checkbox.closest('tr');
+        const campoFecha = fila.querySelector('.fecha-venc-input');
+        const campoOculto = fila.querySelector('.no-vence-oculto');
+        if (checkbox.checked) {
+            campoFecha.value = '';
+            campoFecha.disabled = true;
+            campoOculto.value = '1';
+        } else {
+            campoFecha.disabled = false;
+            campoOculto.value = '0';
+        }
+    }
+    
+
+    document.addEventListener('DOMContentLoaded', function () {
+        agregarFila();
+        var tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        tooltips.forEach(function (el) { new bootstrap.Tooltip(el); });
+    });
+</script>
+{% endblock %}

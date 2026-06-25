@@ -1,0 +1,282 @@
+{% extends 'base.html' %}
+{% load ls_filters %}
+{% block title %}Editar Precios{% endblock %}
+
+{% block contenido %}
+<div class="container py-4" style="max-width:820px;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 style="font-family:'Fredoka One',cursive;color:var(--ls-morado); font-size:1.4rem;">
+            💰 Editar Precios — {{ producto.nombre }}
+        </h2>
+        <a href="{% url 'adm_precios_productos' %}" class="btn btn-ls-outline btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Volver
+        </a>
+    </div>
+
+    <form method="post" id="form-precios">
+        {% csrf_token %}
+
+        <!-- BLOQUE 1: Precios actuales vigentes (referencia, NO editable, NO se actualiza en vivo) -->
+        <div class="ls-precio-card mb-3">
+            <div class="ls-precio-card-header" style="background:linear-gradient(135deg, var(--ls-naranja), var(--ls-rosa));">
+                <i class="bi bi-clipboard-data me-1"></i>Precios actuales vigentes (referencia)
+            </div>
+            <div class="ls-precio-card-body">
+                <div class="row g-2">
+                    <div class="col-3">
+                        <div class="ls-box-readonly">
+                            <span class="ls-box-label">Público</span>
+                            <span class="ls-box-valor">${{ producto.precio|clp }}</span>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="ls-box-readonly">
+                            <span class="ls-box-label">B2D</span>
+                            <span class="ls-box-valor">${{ producto.get_precio_b2d|clp }}</span>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="ls-box-readonly">
+                            <span class="ls-box-label">Volumen</span>
+                            <span class="ls-box-valor">{% if producto.precio_volumen %}${{ producto.precio_volumen|clp }}{% else %}—{% endif %}</span>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="ls-box-readonly" style="border:1.5px dashed #F5D5C0;">
+                            <span class="ls-box-label">Próximo a Vencer</span>
+                            <span class="ls-box-valor" style="color:#A32D2D;">{% if precio_pav %}${{ precio_pav|clp }}{% else %}—{% endif %}</span>
+                            <span class="ls-formula-chica">= costo × 1.19 (último registrado)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BLOQUE 2: Editar precios de venta (AQUÍ SÍ se actualiza en vivo) -->
+        <div class="ls-precio-card mb-3">
+            <div class="ls-precio-card-header">
+                <i class="bi bi-pencil-square me-1"></i>Editar precios de venta (precio unitario)
+            </div>
+            <div class="ls-precio-card-body">
+                <div class="row g-2">
+                    <div class="col-3">
+                        <div class="ls-box-input">
+                            <label class="ls-box-label">Precio público *</label>
+                            <input type="number" name="precio" value="{{ producto.precio }}" required>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="ls-box-input">
+                            <label class="ls-box-label">Precio B2D</label>
+                            <input type="number" name="precio_b2d" value="{{ producto.precio_b2d|default:'' }}">
+                            <span class="ls-formula-chica">= costo × 1.20 (automático si se deja vacío)</span>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="ls-box-input">
+                            <label class="ls-box-label">Precio volumen</label>
+                            <input type="number" name="precio_volumen" value="{{ producto.precio_volumen|default:'' }}" placeholder="Ej: 2.625">
+                            <div class="ls-collapsible mt-2" data-target="#bloque-volumen" style="font-size:.62rem; padding:4px 8px;">
+                                <span><i class="bi bi-box-seam me-1"></i>Cant. mínima y total</span>
+                                <span class="ls-collapse-arrow">▾</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="ls-box-readonly" style="border:1.5px dashed #F5D5C0;">
+                            <span class="ls-box-label">Próximo a Vencer</span>
+                            <span class="ls-box-valor" id="precio-pav-display" style="color:#A32D2D;">{% if precio_pav %}${{ precio_pav|clp }}{% else %}—{% endif %}</span>
+                            <span class="ls-formula-chica">= costo × 1.19 (no editable)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="bloque-volumen" class="ls-collapse-content" style="display:none;">
+                    <div class="row g-2 mt-2">
+                        <div class="col-3">
+                            <div class="ls-box-input">
+                                <label class="ls-box-label">Cantidad mínima volumen</label>
+                                <input type="number" name="cantidad_minima_volumen" value="{{ producto.cantidad_minima_volumen|default:'' }}" placeholder="Ej: 4">
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="ls-box-readonly">
+                                <span class="ls-box-label">Total volumen (calculado)</span>
+                                <span class="ls-box-valor" id="total-vol">
+                                    {% if producto.get_total_volumen %}${{ producto.get_total_volumen|clp }}{% else %}—{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BLOQUE 3: Costo del producto + ayuda de lotes -->
+        <div class="ls-precio-card mb-3">
+            <div class="ls-precio-card-header" style="background:linear-gradient(135deg, var(--ls-amarillo), var(--ls-morado));">
+                <i class="bi bi-tag me-1"></i>Costo del producto (usado para calcular todos los precios)
+            </div>
+            <div class="ls-precio-card-body">
+                <div class="row g-2">
+                    <div class="col-3">
+                        <div class="ls-box-input">
+                            <label class="ls-box-label">Costo manual *</label>
+                            <input type="number" name="costo" value="{{ producto.costo }}" required>
+                        </div>
+                    </div>
+                    <div class="col-9">
+                        <div class="ls-help-box">
+                            <div class="ls-collapsible ls-help-toggle" data-target="#bloque-ayuda-costo">
+                                <span>💡 ¿Cuánto me costó el último lote?</span>
+                                <span class="ls-collapse-arrow">▾</span>
+                            </div>
+                            <div id="bloque-ayuda-costo" class="ls-collapse-content" style="display:none;">
+                                <div class="ls-help-row">
+                                    <span>Costo lote FIFO <small class="ls-help-desc">(el próximo a venderse)</small></span>
+                                    {% if costo_lote_fifo %}
+                                    <strong>${{ costo_lote_fifo|clp }}</strong>
+                                    {% else %}
+                                    <span class="badge" style="background:#FEF3C7;color:#92400E;">Sin lote vigente</span>
+                                    {% endif %}
+                                </div>
+                                <div class="ls-help-row">
+                                    <span>Costo promedio <small class="ls-help-desc">(todos los lotes en stock)</small></span>
+                                    <strong>{% if costo_promedio %}${{ costo_promedio|clp }}{% else %}—{% endif %}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BLOQUE 4: Utilidades resultantes -->
+        <div class="ls-precio-card mb-3">
+            <div class="ls-precio-card-header" style="background:linear-gradient(135deg, #A8D4BC, var(--ls-verde));">
+                <i class="bi bi-graph-up-arrow me-1"></i>Utilidades resultantes
+            </div>
+            <div class="ls-precio-card-body">
+                <div class="row g-2">
+                    <div class="col-3">
+                        <div class="ls-box-readonly">
+                            <span class="ls-box-label">Pública</span>
+                            <span class="ls-box-valor" id="util-pub" style="color:#2e7d32;">${{ producto.precio|add:producto.costo|stringformat:'d'|clp }}</span>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="ls-box-readonly">
+                            <span class="ls-box-label">B2D</span>
+                            <span class="ls-box-valor" id="util-b2d" style="color:#2e7d32;">${{ producto.get_precio_b2d|clp }}</span>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="ls-box-readonly">
+                            <span class="ls-box-label">Volumen</span>
+                            <span class="ls-box-valor" id="util-vol">—</span>
+                        </div>
+                    </div>
+                    <div class="col-3">
+                        <div class="ls-box-readonly">
+                            <span class="ls-box-label">Próximo a Vencer</span>
+                            <span class="ls-box-valor" id="util-pav" style="color:#A32D2D;">—</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Motivo -->
+        <div class="mb-3">
+            <label class="form-label fw-semibold small">Motivo del cambio</label>
+            <input type="text" name="motivo" class="form-control ls-input" placeholder="Ej: Actualización proveedor, oferta temporal…">
+        </div>
+
+        <!-- Historial colapsable -->
+        <div class="ls-collapsible mb-3" data-target="#bloque-historial">
+            <span><i class="bi bi-clock-history me-1"></i>Historial de precios</span>
+            <span class="ls-collapse-arrow">▾ ver historial</span>
+        </div>
+        <div id="bloque-historial" class="ls-collapse-content mb-3" style="display:none;">
+            {% if historial %}
+            <div class="table-responsive">
+                <table class="table ls-table align-middle" style="font-size:.8rem;">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th class="text-center">Precio anterior</th>
+                            <th class="text-center">Precio nuevo</th>
+                            <th class="text-center">Costo anterior</th>
+                            <th class="text-center">Costo nuevo</th>
+                            <th>Motivo</th>
+                            <th>Cambiado por</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for h in historial %}
+                        <tr>
+                            <td><small>{{ h.fecha|date:"d/m/Y H:i" }}</small></td>
+                            <td class="text-center">${{ h.precio_anterior|clp }}</td>
+                            <td class="text-center">${{ h.precio_nuevo|clp }}</td>
+                            <td class="text-center">${{ h.costo_anterior|clp }}</td>
+                            <td class="text-center">${{ h.costo_nuevo|clp }}</td>
+                            <td><small>{{ h.motivo|default:"—" }}</small></td>
+                            <td><small>{{ h.cambiado_por.username|default:"—" }}</small></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted text-center">Sin cambios registrados todavía.</p>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-ls w-100">
+            <i class="bi bi-check-circle me-2"></i>Guardar precios
+        </button>
+    </form>
+</div>
+
+<script>
+    function lsToggleCollapse(el) {
+        const target = document.querySelector(el.dataset.target);
+        const abierto = target.style.display !== 'none';
+        target.style.display = abierto ? 'none' : 'block';
+        const arrow = el.querySelector('.ls-collapse-arrow');
+        if (arrow) arrow.textContent = abierto ? arrow.textContent.replace('▴', '▾') : arrow.textContent.replace('▾', '▴');
+    }
+    document.querySelectorAll('.ls-collapsible').forEach(function (el) {
+        el.addEventListener('click', function () { lsToggleCollapse(el); });
+    });
+
+    function clp(n) { return '$' + Math.round(n).toLocaleString('es-CL'); }
+
+    function calcular() {
+        const precio = parseInt(document.querySelector('[name=precio]').value) || 0;
+        const costo = parseInt(document.querySelector('[name=costo]').value) || 0;
+        const b2dManual = parseInt(document.querySelector('[name=precio_b2d]').value) || 0;
+        const volumen = parseInt(document.querySelector('[name=precio_volumen]').value) || 0;
+        const cant = parseInt(document.querySelector('[name=cantidad_minima_volumen]').value) || 0;
+
+        const b2d = b2dManual || Math.round(costo * 1.20);
+        const pav = Math.round(costo * 1.19);
+
+        document.getElementById('util-pub').textContent = clp(precio - costo);
+        document.getElementById('util-b2d').textContent = clp(b2d - costo);
+        document.getElementById('util-vol').textContent = volumen ? clp(volumen - costo) : '—';
+        document.getElementById('util-pav').textContent = costo ? clp(pav - costo) : '—';
+        document.getElementById('precio-pav-display').textContent = costo ? clp(pav) : '—';
+        document.querySelector('[name=precio_b2d]').placeholder = costo ? clp(b2d) : '';
+
+        if (volumen && cant) {
+            document.getElementById('total-vol').textContent = clp(volumen * cant);
+        }
+    }
+
+    ['precio', 'costo', 'precio_b2d', 'precio_volumen', 'cantidad_minima_volumen'].forEach(function (campo) {
+        document.querySelector('[name=' + campo + ']').addEventListener('input', calcular);
+    });
+    calcular();
+</script>
+{% endblock %}

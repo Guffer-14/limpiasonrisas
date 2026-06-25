@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% load ls_filters %}
+{% block title %}Productos — Gestor{% endblock %}
+
+{% block contenido %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 style="font-family:'Fredoka One',cursive;color:#993556;">
+      📦 Gestión de Productos
+    </h2>
+    <div class="d-flex gap-2">
+      <a href="{% url 'gestor_crear_producto' %}" class="btn btn-ls">
+        <i class="bi bi-plus-circle me-2"></i>Nuevo producto
+      </a>
+      <a href="{% url 'gestor_dashboard' %}" class="btn btn-ls-outline">
+        <i class="bi bi-arrow-left me-1"></i>Volver
+      </a>
+    </div>
+  </div>
+
+  <!-- Filtro por categoría -->
+  <div class="d-flex align-items-center gap-2 flex-wrap mb-3">
+    <span class="small text-muted fw-semibold">Filtrar por categoría:</span>
+    <select class="form-select form-select-sm ls-input" style="width:auto;"
+            onchange="window.location='{% url 'gestor_lista_productos' %}?categoria='+this.value">
+      <option value="">Todas las categorías</option>
+      {% for cat in categorias %}
+      <option value="{{ cat.id }}" {% if categoria_id == cat.id|stringformat:'s' %}selected{% endif %}>
+        {{ cat.nombre }} ({{ cat.productos.count }})
+      </option>
+      {% endfor %}
+    </select>
+  </div>
+
+  {% if categoria_seleccionada %}
+  <div class="mb-3 p-2 rounded-3" style="background:#FBEAF0;">
+    <i class="bi bi-funnel me-2" style="color:#993556;"></i>
+    <span class="small">Mostrando productos de: <strong>{{ categoria_seleccionada.nombre }}</strong></span>
+    <a href="{% url 'gestor_lista_productos' %}" class="btn btn-sm btn-ls-outline ms-2">
+      <i class="bi bi-x me-1"></i>Limpiar filtro
+    </a>
+  </div>
+  {% endif %}
+
+  <div class="table-responsive">
+    <table class="table ls-table align-middle" style="font-size:.82rem;" id="tabla-productos">
+      <thead>
+        <tr>
+          <th onclick="ordenar('nombre')" style="cursor:pointer;">
+            Nombre <span id="flecha-nombre">↕</span>
+          </th>
+          <th onclick="ordenar('marca')" style="cursor:pointer;">
+            Marca <span id="flecha-marca">↕</span>
+          </th>
+          <th onclick="ordenar('categoria')" style="cursor:pointer;">
+            Categoría <span id="flecha-categoria">↕</span>
+          </th>
+          <th class="text-center" onclick="ordenar('stock')" style="cursor:pointer;">
+            Stock <span id="flecha-stock">↕</span>
+          </th>
+          <th class="text-center">Activo</th>
+          <th class="text-center">Destacado</th>
+          <th class="text-center">Pronto a vencer</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="cuerpo-tabla">
+        {% for p in productos %}
+        <tr data-nombre="{{ p.nombre }}"
+            data-marca="{{ p.marca }}"
+            data-categoria="{{ p.categoria.nombre|default:'' }}"
+            data-stock="{{ p.stock }}">
+          <td>
+            <a href="{% url 'detalle_producto' p.id %}" target="_blank"
+               style="color:#993556;text-decoration:none;">
+              <strong>{{ p.nombre }}</strong>
+              <i class="bi bi-box-arrow-up-right ms-1" style="font-size:.75rem;"></i>
+            </a>
+          </td>
+          <td>{{ p.marca|default:"—" }}</td>
+          <td>{{ p.categoria.nombre|default:"—" }}</td>
+          <td class="text-center">{{ p.stock }}</td>
+          <td class="text-center">
+            {% if p.activo %}
+              <span class="badge rounded-pill" style="background:#D1FAE5;color:#065F46;">Sí</span>
+            {% else %}
+              <span class="badge rounded-pill" style="background:#FEE2E2;color:#991B1B;">No</span>
+            {% endif %}
+          </td>
+          <td class="text-center">
+            {% if p.destacado %}
+              <span class="badge rounded-pill" style="background:#FEF3C7;color:#92400E;">⭐ Sí</span>
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td class="text-center">
+            {% if p.pronto_a_vencer %}
+              <span class="badge rounded-pill" style="background:#FEE2E2;color:#991B1B;">⚠️ Sí</span>
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{% url 'gestor_editar_producto' p.id %}" class="btn btn-sm btn-ls-outline">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <a href="{% url 'gestor_eliminar_producto' p.id %}" class="btn btn-sm btn-outline-danger"
+               onclick="return confirm('¿Eliminar este producto?')">
+              <i class="bi bi-trash3"></i>
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="text-center text-muted">No hay productos</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+let ordenActual = '';
+let ascendente = true;
+
+function ordenar(columna) {
+  const tbody = document.getElementById('cuerpo-tabla');
+  const filas = Array.from(tbody.querySelectorAll('tr'));
+
+  if (ordenActual === columna) {
+    ascendente = !ascendente;
+  } else {
+    ascendente = true;
+    ordenActual = columna;
+  }
+
+  document.querySelectorAll('[id^="flecha-"]').forEach(f => f.textContent = '↕');
+  document.getElementById('flecha-' + columna).textContent = ascendente ? '↑' : '↓';
+
+  filas.sort((a, b) => {
+    let valA = a.dataset[columna] || '';
+    let valB = b.dataset[columna] || '';
+    const numA = parseFloat(valA);
+    const numB = parseFloat(valB);
+    if (!isNaN(numA) && !isNaN(numB)) {
+      return ascendente ? numA - numB : numB - numA;
+    }
+    return ascendente
+      ? valA.localeCompare(valB, 'es')
+      : valB.localeCompare(valA, 'es');
+  });
+
+  filas.forEach(f => tbody.appendChild(f));
+}
+</script>
+{% endblock %}

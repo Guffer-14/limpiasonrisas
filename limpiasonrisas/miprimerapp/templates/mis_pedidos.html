@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %}Mis pedidos – {{ clinica.nombre_clinica }}{% load ls_filters %}{% endblock %}
+
+{% block contenido %}
+<div class="container py-4">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <h2 style="font-family:'Fredoka One',cursive;color:#6B3FA0;margin:0;">
+      🗂 Mis pedidos
+    </h2>
+    <a href="{% url 'dashboard_clinica' %}" class="btn btn-ls-outline">
+      <i class="bi bi-arrow-left me-1"></i>Volver al panel
+    </a>
+  </div>
+
+  {% if pedidos %}
+  <div class="table-responsive">
+    <table class="table ls-table align-middle">
+      <thead>
+        <tr>
+          <th>#</th><th>Fecha</th><th>Productos</th>
+          <th>Total con IVA</th><th>Estado</th><th>Entregado</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for pedido in pedidos %}
+        <tr>
+          <td><strong>#{{ pedido.pk }}</strong></td>
+          <td><small>{{ pedido.fecha_creacion|date:"d/m/Y" }}</small></td>
+          <td>
+            <small>
+              {% for det in pedido.detalles.all %}
+                {{ det.producto.nombre }} x{{ det.cantidad }}{% if not forloop.last %}, {% endif %}
+              {% endfor %}
+            </small>
+          </td>
+          <td><strong style="color:#993556;">${{ pedido.total_con_iva|clp }}</strong></td>
+          <td>
+            <span class="badge rounded-pill badge-{{ pedido.estado }}">
+              {{ pedido.get_estado_display }}
+            </span>
+          </td>
+          <td>
+            {% if pedido.estado == 'entregado' %}
+              {% for h in pedido.historial.all %}
+                {% if h.estado == 'entregado' %}
+                  <small class="text-muted">{{ h.fecha|date:"d/m/Y" }}</small>
+                {% endif %}
+              {% endfor %}
+            {% else %}
+              <span class="text-muted">–</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="text-center py-5">
+    <div style="font-size:5rem;color:#e8d5dc;">🗂</div>
+    <h4 class="mt-3" style="color:#6B3FA0;">Aún no tienes pedidos</h4>
+    <a href="{% url 'dashboard_clinica' %}" class="btn btn-ls mt-2">
+      <i class="bi bi-cart-plus me-2"></i>Hacer mi primer pedido
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<style>
+.badge-entregado      { background:#D1FAE5; color:#065F46; }
+.badge-enviado        { background:#DBEAFE; color:#1E40AF; }
+.badge-en_preparacion { background:#FEF3C7; color:#92400E; }
+.badge-pendiente      { background:#F3F4F6; color:#374151; }
+.badge-cancelado      { background:#FEE2E2; color:#991B1B; }
+</style>
+{% endblock %}

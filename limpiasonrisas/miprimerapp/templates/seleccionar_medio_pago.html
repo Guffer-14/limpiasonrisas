@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load ls_filters %}
+{% block title %}Selecciona tu medio de pago{% endblock %}
+
+{% block contenido %}
+<div class="container py-5" style="max-width:600px;">
+
+    <div class="text-center mb-4">
+        <h2 style="font-family:'Fredoka One',cursive;color:#993556;">
+            💳 Selecciona tu medio de pago
+        </h2>
+        <p class="text-muted">
+            Pedido #{{ solicitud.pk }} — Total a pagar:
+            <strong style="color:#993556;">${{ solicitud.total_con_iva|clp }}</strong>
+        </p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="ls-form-card mb-3">
+            <label class="p-4 d-flex align-items-center gap-3" style="cursor:pointer;margin:0;">
+                <input type="radio" name="medio" value="webpay" class="form-check-input" checked>
+                <img src="https://www.transbank.cl/img/logo-webpay-plus.svg" alt="Webpay" height="28"
+                     onerror="this.style.display='none'">
+                <div>
+                    <strong>Webpay Plus</strong>
+                    <div class="text-muted small">Tarjetas de crédito y débito</div>
+                </div>
+            </label>
+        </div>
+
+        <div class="ls-form-card mb-3" style="opacity:.6;">
+            <label class="p-4 d-flex align-items-center gap-3" style="cursor:not-allowed;margin:0;">
+                <input type="radio" name="medio" value="mercadopago" class="form-check-input" disabled>
+                <div>
+                    <strong>Mercado Pago</strong>
+                    <div class="text-muted small">Próximamente</div>
+                </div>
+            </label>
+        </div>
+
+        <div class="ls-form-card mb-4" style="opacity:.6;">
+            <label class="p-4 d-flex align-items-center gap-3" style="cursor:not-allowed;margin:0;">
+                <input type="radio" name="medio" value="transferencia" class="form-check-input" disabled>
+                <div>
+                    <strong>Transferencia bancaria</strong>
+                    <div class="text-muted small">Próximamente</div>
+                </div>
+            </label>
+        </div>
+
+        <button type="submit" class="btn btn-ls btn-lg w-100">
+            <i class="bi bi-lock-fill me-2"></i>Pagar de forma segura
+        </button>
+    </form>
+
+</div>
+{% endblock %}

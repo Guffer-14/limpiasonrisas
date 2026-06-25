@@ -1,0 +1,286 @@
+{% extends 'base.html' %}
+{% load ls_filters %}
+{% block title %}Finalizar pedido{% endblock %}
+
+{% block contenido %}
+<div class="container py-4" style="max-width:800px;">
+
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h2 style="font-family:'Fredoka One',cursive;color:#993556;margin:0;">
+            ✅ Finalizar pedido
+        </h2>
+        <a href="{% url 'mi_cuenta' %}" class="btn btn-ls-outline">
+            <i class="bi bi-arrow-left me-1"></i>Volver
+        </a>
+    </div>
+
+    <form method="post" id="form-pedido">
+        {% csrf_token %}
+
+        <!-- Resumen del pedido -->
+        <div class="ls-form-card mb-4">
+            <div class="ls-form-header">
+                <h5 class="mb-0"><i class="bi bi-receipt me-2"></i>Resumen del pedido</h5>
+            </div>
+            <div class="p-4">
+                <table class="table ls-table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cant.</th>
+                            <th>Precio</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in carrito_items %}
+                        <tr>
+                            <td>
+                                <strong>{{ item.producto.nombre }}</strong>
+                                {% if item.producto.marca %}<br><small class="text-muted">{{ item.producto.marca }}</small>{% endif %}
+                            </td>
+                            <td>
+                                {{ item.cantidad }}
+                                {% if item.sin_stock_suficiente %}
+                                <i class="bi bi-exclamation-circle-fill text-danger ms-1"
+                                    title="Solo quedan {{ item.stock_disponible }} unidades disponibles"
+                                    data-bs-toggle="tooltip"></i>
+                                {% endif %}
+                            </td>
+                            <td>${{ item.precio_unitario|clp }}</td>
+                            <td><strong>${{ item.subtotal|clp }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr style="background:#f8f6f4;">
+                            <td colspan="3" class="text-end fw-semibold">Neto (sin IVA)</td>
+                            <td class="fw-bold">${{ carrito_neto|clp }}</td>
+                        </tr>
+                        <tr style="background:#f8f6f4;">
+                            <td colspan="3" class="text-end text-muted small">IVA (19%)</td>
+                            <td class="text-muted small">${{ carrito_iva|clp }}</td>
+                        </tr>
+                        <tr style="background:#FBEAF0;">
+                            <td colspan="3" class="text-end fw-bold" style="color:#993556;">Total con IVA</td>
+                            <td class="fw-bold" style="color:#993556;font-size:1.1rem;">${{ carrito_total|clp }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <!-- Datos personales -->
+        <div class="ls-form-card mb-4">
+            <div class="ls-form-header">
+                <h5 class="mb-0"><i class="bi bi-person me-2"></i>Datos personales</h5>
+            </div>
+            <div class="p-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold small">Nombre completo</label>
+                        <input type="text" class="form-control ls-input" value="{{ user.get_full_name }}" readonly
+                            style="background:#f8f6f4;">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold small">RUT *</label>
+                        <input type="text" name="rut" class="form-control ls-input" value="{{ perfil.rut }}"
+                            placeholder="12.345.678-9" required>
+                        <div class="form-text">Necesario para emitir boleta</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold small">Email</label>
+                        <input type="text" class="form-control ls-input" value="{{ user.email }}" readonly
+                            style="background:#f8f6f4;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dirección de despacho -->
+        <div class="ls-form-card mb-4">
+            <div class="ls-form-header">
+                <h5 class="mb-0"><i class="bi bi-truck me-2"></i>Dirección de despacho</h5>
+            </div>
+            <div class="p-4">
+                {% if direcciones %}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">Selecciona una dirección guardada</label>
+                    {% for dir in direcciones %}
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="direccion_id" value="{{ dir.pk }}"
+                            id="dir-{{ dir.pk }}" {% if dir.principal %}checked{% endif %}>
+                        <label class="form-check-label" for="dir-{{ dir.pk }}">
+                            <strong>{{ dir.alias }}</strong> — {{ dir.direccion }}, {{ dir.ciudad }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="direccion_id" value="" id="dir-nueva"
+                            onclick="toggleNuevaDireccion(true)">
+                        <label class="form-check-label" for="dir-nueva">
+                            <i class="bi bi-plus-circle me-1"></i>Agregar nueva dirección
+                        </label>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Nueva dirección -->
+                <div id="nueva-direccion" {% if direcciones %}style="display:none;" {% endif %}>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Alias</label>
+                            <input type="text" name="alias" class="form-control ls-input" placeholder="Casa, Trabajo…">
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold small">Dirección *</label>
+                            <input type="text" name="nueva_direccion" class="form-control ls-input"
+                                placeholder="Calle, número">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Ciudad *</label>
+                            <input type="text" name="nueva_ciudad" class="form-control ls-input" placeholder="Ciudad">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Región</label>
+                            <select name="nueva_region" class="form-select ls-input">
+                                <option value="RM">Región Metropolitana</option>
+                                <option value="V">Valparaíso</option>
+                                <option value="IX" selected>La Araucanía</option>
+                                <option value="VIII">Biobío</option>
+                                <option value="X">Los Lagos</option>
+                                <option value="XIV">Los Ríos</option>
+                                <option value="VII">Maule</option>
+                                <option value="VI">O'Higgins</option>
+                                <option value="XVI">Ñuble</option>
+                                <option value="IV">Coquimbo</option>
+                                <option value="I">Tarapacá</option>
+                                <option value="II">Antofagasta</option>
+                                <option value="III">Atacama</option>
+                                <option value="XV">Arica y Parinacota</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preferencias de entrega -->
+        <div class="ls-form-card mb-4">
+            <div class="ls-form-header">
+                <h5 class="mb-0"><i class="bi bi-clock me-2"></i>Preferencias de entrega</h5>
+            </div>
+            <div class="p-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold small">Horario preferido</label>
+                        <select name="horario" class="form-select ls-input">
+                            <option value="manana" {% if perfil.horario_preferido == 'manana' %}selected{% endif %}>
+                                Mañana (9:00–13:00)
+                            </option>
+                            <option value="tarde" {% if perfil.horario_preferido == 'tarde' %}selected{% endif %}>
+                                Tarde (14:00–18:00)
+                            </option>
+                            <option value="cualquiera" {% if perfil.horario_preferido == 'cualquiera' %}selected{% endif %}>
+                                Cualquier horario
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold small">Días disponibles</label>
+                        <div class="p-3 rounded-3" style="background:#f8f6f4;border:1px solid #eee;">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="dias" value="lunes"
+                                    id="dia-lunes">
+                                <label class="form-check-label small" for="dia-lunes">Lunes</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="dias" value="martes"
+                                    id="dia-martes">
+                                <label class="form-check-label small" for="dia-martes">Martes</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="dias" value="miercoles"
+                                    id="dia-miercoles">
+                                <label class="form-check-label small" for="dia-miercoles">Miércoles</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="dias" value="jueves"
+                                    id="dia-jueves">
+                                <label class="form-check-label small" for="dia-jueves">Jueves</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="dias" value="viernes"
+                                    id="dia-viernes">
+                                <label class="form-check-label small" for="dia-viernes">Viernes</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="dias" value="sabado"
+                                    id="dia-sabado">
+                                <label class="form-check-label small" for="dia-sabado">Sábado</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="dias" value="domingo"
+                                    id="dia-domingo">
+                                <label class="form-check-label small" for="dia-domingo">Domingo</label>
+                            </div>
+                            <div class="form-check mt-1" style="border-top:1px solid #ddd;padding-top:6px;">
+                                <input class="form-check-input" type="checkbox" name="dias" value="cualquier_dia"
+                                    id="dia-cualquier">
+                                <label class="form-check-label small fw-semibold" for="dia-cualquier">Cualquier
+                                    día</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold small">Observaciones de entrega</label>
+                        <textarea name="observaciones" class="form-control ls-input" rows="2"
+                            placeholder="Ej: Tocar timbre, no llamar…">{{ perfil.observaciones_entrega }}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirmar -->
+        <button type="button" class="btn btn-ls btn-lg w-100" data-bs-toggle="modal" data-bs-target="#modalConfirmar">
+            <i class="bi bi-credit-card me-2"></i>Confirmar y pagar
+        </button>
+        <p class="text-center text-muted small mt-3">
+            Serás redirigido a elegir tu medio de pago. 💳
+        </p>
+
+    </form>
+
+</div>
+
+<!-- Modal confirmar -->
+<div class="modal fade" id="modalConfirmar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" style="color:#993556;">
+                    🎉 ¿Listo para enviar tu pedido?
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted">Tu pedido incluye
+                    <strong>{{ carrito_items|length }} producto(s)</strong> por un total de
+                    <strong style="color:#993556;">${{ carrito_total|clp }}</strong> con IVA.
+                </p>
+                <p class="small text-muted">A continuación elegirás cómo pagar. 💳</p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-ls-outline" data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+                <button type="button" class="btn btn-ls" onclick="document.getElementById('form-pedido').submit()">
+                    <i class="bi bi-credit-card me-2"></i>Ir a pagar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

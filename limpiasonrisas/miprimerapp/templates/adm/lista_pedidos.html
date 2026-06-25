@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+{% load ls_filters %}
+{% block title %}Gestión de Pedidos{% endblock %}
+
+{% block contenido %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 style="font-family:'Fredoka One',cursive;color:var(--ls-morado);">
+      📋 Gestión de Pedidos
+    </h2>
+    <a href="{% url 'adm_dashboard' %}" class="btn btn-ls-outline">
+      <i class="bi bi-arrow-left me-1"></i>Volver
+    </a>
+  </div>
+
+  <!-- Búsqueda y filtro de fechas -->
+  <form method="get" class="ls-form-card mb-3 p-3">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-5">
+        <label class="form-label fw-semibold small">Buscar</label>
+        <input type="text" name="q" value="{{ busqueda }}" class="form-control ls-input"
+               placeholder="Cliente, ciudad o tipo (clínica/público)…">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-semibold small">Desde</label>
+        <input type="date" name="desde" value="{{ fecha_desde }}" class="form-control ls-input">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-semibold small">Hasta</label>
+        <input type="date" name="hasta" value="{{ fecha_hasta }}" class="form-control ls-input">
+      </div>
+      <div class="col-md-1">
+        <input type="hidden" name="estado" value="{{ estado_filtro }}">
+        <input type="hidden" name="orden" value="{{ orden }}">
+        <button type="submit" class="btn btn-ls w-100">
+          <i class="bi bi-search"></i>
+        </button>
+      </div>
+    </div>
+    {% if busqueda or fecha_desde or fecha_hasta %}
+    <div class="mt-2">
+      <a href="?estado={{ estado_filtro }}" class="small text-muted">
+        <i class="bi bi-x-circle me-1"></i>Limpiar búsqueda
+      </a>
+    </div>
+    {% endif %}
+  </form>
+
+  <!-- Filtro por estado -->
+  <div class="d-flex align-items-center gap-2 flex-wrap mb-3">
+    <span class="small text-muted fw-semibold">Filtrar por estado:</span>
+    <a href="?q={{ busqueda }}&desde={{ fecha_desde }}&hasta={{ fecha_hasta }}&orden={{ orden }}"
+       class="btn btn-sm {% if not estado_filtro %}btn-ls{% else %}btn-ls-outline{% endif %}">Todos</a>
+    {% for valor, etiqueta in estados %}
+    <a href="?estado={{ valor }}&q={{ busqueda }}&desde={{ fecha_desde }}&hasta={{ fecha_hasta }}&orden={{ orden }}"
+       class="btn btn-sm {% if estado_filtro == valor %}btn-ls{% else %}btn-ls-outline{% endif %}">{{ etiqueta }}</a>
+    {% endfor %}
+  </div>
+
+  {% if pedidos %}
+  <div class="table-responsive">
+    <table class="table align-middle ls-form-card">
+      <thead class="ls-table">
+        <tr>
+          <th>
+            <a href="?estado={{ estado_filtro }}&q={{ busqueda }}&desde={{ fecha_desde }}&hasta={{ fecha_hasta }}&orden={% if orden == 'tipo' %}-tipo{% else %}tipo{% endif %}"
+               class="text-decoration-none" style="color:inherit;">
+              Tipo
+              {% if orden == 'tipo' %}<i class="bi bi-arrow-up"></i>
+              {% elif orden == '-tipo' %}<i class="bi bi-arrow-down"></i>
+              {% else %}<i class="bi bi-arrow-down-up text-muted" style="font-size:.7rem;"></i>
+              {% endif %}
+            </a>
+          </th>
+          <th>
+            <a href="?estado={{ estado_filtro }}&q={{ busqueda }}&desde={{ fecha_desde }}&hasta={{ fecha_hasta }}&orden={% if orden == 'cliente' %}-cliente{% else %}cliente{% endif %}"
+               class="text-decoration-none" style="color:inherit;">
+              Cliente
+              {% if orden == 'cliente' %}<i class="bi bi-arrow-up"></i>
+              {% elif orden == '-cliente' %}<i class="bi bi-arrow-down"></i>
+              {% else %}<i class="bi bi-arrow-down-up text-muted" style="font-size:.7rem;"></i>
+              {% endif %}
+            </a>
+          </th>
+          <th>
+            <a href="?estado={{ estado_filtro }}&q={{ busqueda }}&desde={{ fecha_desde }}&hasta={{ fecha_hasta }}&orden={% if orden == 'ciudad' %}-ciudad{% else %}ciudad{% endif %}"
+               class="text-decoration-none" style="color:inherit;">
+              Ciudad
+              {% if orden == 'ciudad' %}<i class="bi bi-arrow-up"></i>
+              {% elif orden == '-ciudad' %}<i class="bi bi-arrow-down"></i>
+              {% else %}<i class="bi bi-arrow-down-up text-muted" style="font-size:.7rem;"></i>
+              {% endif %}
+            </a>
+          </th>
+          <th>
+            <a href="?estado={{ estado_filtro }}&q={{ busqueda }}&desde={{ fecha_desde }}&hasta={{ fecha_hasta }}&orden={% if orden == 'fecha' %}-fecha{% else %}fecha{% endif %}"
+               class="text-decoration-none" style="color:inherit;">
+              Fecha
+              {% if orden == 'fecha' %}<i class="bi bi-arrow-up"></i>
+              {% elif orden == '-fecha' %}<i class="bi bi-arrow-down"></i>
+              {% else %}<i class="bi bi-arrow-down-up text-muted" style="font-size:.7rem;"></i>
+              {% endif %}
+            </a>
+          </th>
+          <th>
+            <a href="?estado={{ estado_filtro }}&q={{ busqueda }}&desde={{ fecha_desde }}&hasta={{ fecha_hasta }}&orden={% if orden == 'total' %}-total{% else %}total{% endif %}"
+               class="text-decoration-none" style="color:inherit;">
+              Total
+              {% if orden == 'total' %}<i class="bi bi-arrow-up"></i>
+              {% elif orden == '-total' %}<i class="bi bi-arrow-down"></i>
+              {% else %}<i class="bi bi-arrow-down-up text-muted" style="font-size:.7rem;"></i>
+              {% endif %}
+            </a>
+          </th>
+          <th>Estado</th>
+          <th>Pago</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in pedidos %}
+        <tr>
+          <td>
+            {% if p.tipo == 'clinica' %}
+              <span class="badge" style="background:var(--ls-morado);color:white;">🦷 Clínica</span>
+            {% else %}
+              <span class="badge" style="background:var(--ls-rosa);color:white;">👤 Público</span>
+            {% endif %}
+          </td>
+          <td>{{ p.cliente }}</td>
+          <td>{{ p.ciudad }}</td>
+          <td>{{ p.fecha|date:"d/m/Y H:i" }}</td>
+          <td class="fw-bold">${{ p.total|clp }}</td>
+          <td>
+            <span class="badge badge-{{ p.estado }}">{{ p.estado_display }}</span>
+          </td>
+          <td>
+            {% if p.pago_estado == 'aprobado' %}
+              <span class="badge rounded-pill" style="background:#d4edda;color:#155724;">
+                <i class="bi bi-check-circle me-1"></i>Pagado
+              </span>
+            {% elif p.pago_estado == 'rechazado' %}
+              <span class="badge rounded-pill" style="background:#f8d7da;color:#721c24;">
+                <i class="bi bi-x-circle me-1"></i>Rechazado
+              </span>
+            {% elif p.pago_estado == 'pendiente' %}
+              <span class="badge rounded-pill" style="background:#fff3cd;color:#856404;">
+                <i class="bi bi-clock me-1"></i>Pendiente
+              </span>
+            {% else %}
+              <span class="text-muted small">—</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{% url 'adm_detalle_pedido' p.tipo p.id %}" class="btn btn-ls-outline btn-sm">
+              <i class="bi bi-eye"></i> Ver
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="ls-form-card p-5 text-center">
+    <i class="bi bi-inbox" style="font-size:3rem;color:var(--ls-rosa-light);"></i>
+    <p class="mt-3 mb-0 text-muted">No hay pedidos {% if estado_filtro %}con este estado{% endif %}.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

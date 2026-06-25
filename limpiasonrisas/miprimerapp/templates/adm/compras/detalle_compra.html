@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% load ls_filters %}
+{% block title %}Detalle de Compra{% endblock %}
+
+{% block contenido %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 style="font-family:'Fredoka One',cursive;color:var(--ls-morado);">
+            📦 Detalle de Compra
+        </h2>
+        <div class="d-flex gap-2">
+            <a href="{% url 'adm_editar_compra' compra.id %}" class="btn btn-ls">
+                <i class="bi bi-pencil-square me-1"></i>Editar
+            </a>
+            <a href="{% url 'adm_lista_compras' %}" class="btn btn-ls-outline">
+                <i class="bi bi-arrow-left me-1"></i>Volver
+            </a>
+        </div>
+    </div>
+
+    <!-- Resumen de la compra -->
+    <div class="ls-form-card mb-4">
+        <div class="ls-form-header">
+            <h5 class="mb-0">
+                {% if compra.tipo == 'compra' %}
+                <i class="bi bi-receipt me-2"></i>Factura {{ compra.numero_factura }}
+                {% else %}
+                <i class="bi bi-box-seam me-2"></i>Stock inicial / Ajuste
+                {% endif %}
+            </h5>
+        </div>
+        <div class="p-4">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <small class="text-muted d-block">Proveedor</small>
+                    <strong>{{ compra.proveedor|default:"—" }}</strong>
+                </div>
+                <div class="col-md-3">
+                    <small class="text-muted d-block">Fecha de compra</small>
+                    <strong>{{ compra.fecha_compra|date:"d/m/Y" }}</strong>
+                </div>
+                <div class="col-md-3">
+                    <small class="text-muted d-block">Flete total</small>
+                    <strong>${{ compra.flete_total|clp }}</strong>
+                </div>
+                <div class="col-md-3">
+                    <small class="text-muted d-block">Flete por unidad</small>
+                    <strong>${{ compra.flete_por_unidad|clp }}</strong>
+                </div>
+                {% if compra.motivo %}
+                <div class="col-12">
+                    <small class="text-muted d-block">Motivo</small>
+                    <p class="mb-0">{{ compra.motivo }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de lotes -->
+    <h6 class="fw-bold mb-3" style="color:var(--ls-morado);">Productos ingresados</h6>
+    <div class="table-responsive">
+        <table class="table align-middle ls-form-card">
+            <thead class="ls-table">
+                <tr>
+                    <th>Producto</th>
+                    <th>Lote</th>
+                    <th>Vencimiento</th>
+                    <th>Cantidad</th>
+                    <th>Costo unitario s/IVA + flete</th>
+                    <th>Costo unitario c/IVA</th>
+                    <th>
+                        Margen público
+                        <i class="bi bi-info-circle ms-1" style="cursor:help;"
+                           data-bs-toggle="tooltip" data-bs-placement="top"
+                           title="(Precio público − Costo unitario c/IVA, que ya incluye flete) ÷ Precio público × 100"></i>
+                    </th>
+                    <th>
+                        Margen dentista
+                        <i class="bi bi-info-circle ms-1" style="cursor:help;"
+                           data-bs-toggle="tooltip" data-bs-placement="top"
+                           title="(Precio dentista/B2D − Costo unitario c/IVA, que ya incluye flete) ÷ Precio dentista/B2D × 100"></i>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lote in lotes %}
+                <tr>
+                    <td>
+                        <a href="{% url 'adm_editar_precio' lote.producto.id %}"
+                            title="Editar precios de {{ lote.producto.nombre }}"
+                            style="color:var(--ls-morado); font-weight:600; text-decoration:none;">
+                            {{ lote.producto.nombre }}
+                            <i class="bi bi-pencil-square ms-1" style="font-size:.75em;"></i>
+                        </a>
+                    </td>
+                    <td>{{ lote.numero_lote|default:"—" }}</td>
+                    <td>
+                        {% if lote.fecha_vencimiento %}
+                        {{ lote.fecha_vencimiento|date:"d/m/Y" }}
+                        {% if lote.semaforo_vencimiento == 'rojo' %}
+                        <span class="badge badge-cancelado">🔴 {{ lote.dias_para_vencer }} días</span>
+                        {% elif lote.semaforo_vencimiento == 'amarillo' %}
+                        <span class="badge badge-pendiente">🟡 {{ lote.dias_para_vencer }} días</span>
+                        {% else %}
+                        <span class="badge badge-aprobado">🟢 ok</span>
+                        {% endif %}
+                        {% else %}
+                        —
+                        {% endif %}
+                    </td>
+                    <td>{{ lote.cantidad }}</td>
+                    <td>${{ lote.costo_unitario_sin_iva|clp }} <small class="text-muted">/u</small></td>
+                    <td class="fw-bold">${{ lote.costo_unitario_con_iva|clp }} <small class="text-muted">/u</small></td>
+                    <td>
+                        {% if lote.margen_publico != None %}
+                        {{ lote.margen_publico }}%
+                        {% else %}
+                        —
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if lote.margen_dentista != None %}
+                        {{ lote.margen_dentista }}%
+                        {% else %}
+                        —
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="fw-bold">
+                    <td colspan="3">Total</td>
+                    <td>{{ compra.total_unidades }} u.</td>
+                    <td>${{ compra.total_sin_iva|clp }}</td>
+                    <td>${{ compra.total_con_iva|clp }}</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        tooltips.forEach(function (el) { new bootstrap.Tooltip(el); });
+    });
+</script>
+{% endblock %}

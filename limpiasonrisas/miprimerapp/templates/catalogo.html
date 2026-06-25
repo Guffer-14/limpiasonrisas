@@ -1,0 +1,297 @@
+{% extends 'base.html' %}
+{% load static %}{% load ls_filters %}
+{% block title %}Catálogo de productos{% endblock %}
+
+{% block contenido %}
+<!-- Header -->
+<div style="background: linear-gradient(135deg, #FBEAF0, #ede0f5); padding: 40px 0 28px;">
+  <div class="container">
+    <h1 class="ls-section-title">🦷 Catálogo de productos</h1>
+    <p class="text-muted mt-2 mb-0">Higiene oral profesional para toda la familia</p>
+  </div>
+</div>
+
+<div class="container py-4">
+  <!-- Texto guía -->
+  <p class="fw-semibold mb-2" style="color:#993556;">🔎 Busca tu producto aquí</p>
+
+
+  <!-- Filtros -->
+  <div class="row g-3 mb-4">
+    <form method="get" class="d-flex flex-column flex-md-row gap-2 w-100" id="form-filtros-catalogo">
+      <div style="flex:3; min-width:0; position:relative;">
+        <input type="search" name="q" id="buscador-catalogo" value="{{ busqueda }}" placeholder="Buscar producto…"
+          class="form-control ls-input" autocomplete="off">
+        <div id="sugerencias-catalogo" class="position-absolute w-100 bg-white border rounded-3 shadow-sm"
+          style="z-index:1050; display:none; max-height:320px; overflow-y:auto; top:100%; left:0; margin-top:4px;">
+        </div>
+      </div>
+      <div class="d-flex gap-2" style="flex:2; min-width:0;">
+        <select name="categoria" class="form-select ls-input" onchange="this.form.submit()" style="flex:1;">
+          <option value="" {% if not cat_id %}selected{% endif %}>Todas las categorías</option>
+          {% for cat in categorias %}
+          <option value="{{ cat.id }}" {% if cat_id == cat.id|stringformat:'s' %}selected{% endif %}>
+            {{ cat.nombre }}
+          </option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-ls"><i class="bi bi-search"></i></button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Grid de productos -->
+  {% if productos %}
+  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+    {% for prod in productos %}
+    <div class="col">
+      <div class="ls-product-card{% if prod.stock <= 0 %} sin-stock{% endif %}">
+        <div class="card-img-wrapper">
+          {% if prod.stock <= 0 %} <span class="badge-sin-stock">Sin stock</span>
+            {% endif %}
+            {% if prod.imagen %}
+            <img src="{{ prod.imagen.url }}" alt="{{ prod.nombre }}">
+            {% else %}
+            <div style="font-size:5rem; color:rgba(153,53,86,.25);">🦷</div>
+            {% endif %}
+            {% if prod.destacado %}
+            <span class="position-absolute top-0 end-0 m-2 badge rounded-pill"
+              style="background:#F5C842; color:#3d2800; font-size:.7rem;">⭐ Favorito</span>
+            {% endif %}
+        </div>
+        <div class="card-body">
+          {% if prod.marca %}
+          <span class="marca-badge">{{ prod.marca }}</span>
+          {% endif %}
+          {% if prod.categoria %}
+          <small class="text-muted d-block mb-1">{{ prod.categoria.nombre }}</small>
+          {% endif %}
+          <h5 class="mt-1 mb-2">{{ prod.nombre }}</h5>
+          <p class="text-muted small flex-grow-1">{{ prod.descripcion|truncatechars:80 }}</p>
+          {% if prod.edad_min or prod.edad_max %}
+          <small class="text-muted">
+            <i class="bi bi-person-hearts"></i>
+            {% if prod.edad_min %}Desde {{ prod.edad_min }} años{% endif %}
+            {% if prod.edad_max %} hasta {{ prod.edad_max }} años{% endif %}
+          </small>
+          {% endif %}
+          {% if prod.stock > 0 and prod.stock <= 3 %} <span class="badge-stock-bajo mt-1">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            ¡Últimas {{ prod.stock }} unidades!
+            </span>
+            {% endif %}
+            <div class="d-flex align-items-center justify-content-between mt-3">
+              <span class="ls-precio-badge">${{ prod.precio|clp }}</span>
+              <a href="{% url 'detalle_producto' prod.pk %}" class="btn btn-ls-outline btn-sm">Ver más</a>
+            </div>
+            {% if prod.stock > 0 %}
+            <form method="post" class="mt-2 form-agregar-carrito">
+              {% csrf_token %}
+              <input type="hidden" name="producto_id" value="{{ prod.pk }}">
+              <div class="d-flex gap-2">
+                <div class="ls-stepper d-flex align-items-center">
+                  <button type="button" class="ls-stepper-btn" data-step="-1">−</button>
+                  <input type="number" name="cantidad" value="1" min="1" max="99" class="ls-stepper-input"
+                    inputmode="numeric">
+                  <button type="button" class="ls-stepper-btn" data-step="1">+</button>
+                </div>
+                <button type="submit" class="btn btn-ls btn-sm flex-grow-1">
+                  <i class="bi bi-cart-plus"></i> Agregar
+                </button>
+              </div>
+            </form>
+            {% else %}
+            <button type="button" class="btn btn-ls-outline btn-sm w-100 mt-2" disabled>
+              <i class="bi bi-bell"></i> Avísame cuando llegue
+            </button>
+            {% endif %}
+            {% if prod.precio_pack %}
+            <div class="mt-2">
+              <span class="ls-precio-pack">
+                Pack {{ prod.unidades_pack }}u: ${{ prod.precio_pack }}
+              </span>
+            </div>
+            {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-5">
+    <div style="font-size:5rem;">😔</div>
+    <h4 class="mt-3" style="color:#993556;">No encontramos productos</h4>
+    <p class="text-muted">Intenta con otra búsqueda o categoría</p>
+    <a href="{% url 'catalogo' %}" class="btn btn-ls mt-2">Ver todos</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+  .ls-toast-container {
+    position: fixed;
+    top: 90px;
+    right: 20px;
+    z-index: 1080;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 320px;
+  }
+
+  .ls-toast {
+    background: #fff;
+    border-left: 5px solid var(--ls-rosa);
+    border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, .15);
+    padding: 12px 16px;
+    font-size: .9rem;
+    color: #2c1a23;
+    opacity: 0;
+    transform: translateX(20px);
+    transition: all .25s ease;
+  }
+
+  .ls-toast.ls-toast-error {
+    border-left-color: #c0392b;
+  }
+
+  .ls-toast.show {
+    opacity: 1;
+    transform: translateX(0);
+  }
+</style>
+<div class="ls-toast-container" id="lsToastContainer"></div>
+
+<script>
+  function lsMostrarToast(mensaje, esError) {
+    const cont = document.getElementById('lsToastContainer');
+    const toast = document.createElement('div');
+    toast.className = 'ls-toast' + (esError ? ' ls-toast-error' : '');
+    toast.textContent = mensaje;
+    cont.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 250);
+    }, 2800);
+  }
+
+  function lsActualizarContadorCarrito(nuevoCount) {
+    let badge = document.querySelector('.ls-carrito-badge');
+    const carritoBtn = document.querySelector('.ls-carrito-link');
+    if (nuevoCount > 0) {
+      if (!badge && carritoBtn) {
+        badge = document.createElement('span');
+        badge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill ls-carrito-badge';
+        badge.style.background = '#993556';
+        badge.style.fontSize = '.7rem';
+        carritoBtn.appendChild(badge);
+      }
+      if (badge) badge.textContent = nuevoCount;
+    } else if (badge) {
+      badge.remove();
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+
+    // Bloque: autocompletado del buscador de productos
+    const buscadorCat    = document.getElementById('buscador-catalogo');
+    const sugerenciasCat = document.getElementById('sugerencias-catalogo');
+    let debounceCatalogo;
+
+    if (buscadorCat && sugerenciasCat) {
+      buscadorCat.addEventListener('input', function () {
+        clearTimeout(debounceCatalogo);
+        const q = this.value.trim();
+        if (q.length < 2) { sugerenciasCat.style.display = 'none'; return; }
+        debounceCatalogo = setTimeout(() => {
+          fetch(`/api/buscar-productos/?q=${encodeURIComponent(q)}`)
+            .then(r => r.json())
+            .then(data => {
+              sugerenciasCat.innerHTML = '';
+              if (!data.results.length) {
+                sugerenciasCat.innerHTML = '<div class="px-3 py-2 text-muted small">Sin resultados</div>';
+              } else {
+                data.results.forEach(p => {
+                  const div = document.createElement('div');
+                  div.className = 'px-3 py-2 d-flex justify-content-between align-items-center';
+                  div.style.cssText = 'cursor:pointer; border-bottom:1px solid #f0e6ec;';
+                  div.innerHTML = `<span><strong>${p.nombre}</strong>${p.marca ? ' <small class="text-muted">'+p.marca+'</small>' : ''}</span>
+                                   <span class="badge rounded-pill" style="background:#FBEAF0;color:#993556;">$${p.precio.toLocaleString('es-CL')}</span>`;
+                  div.addEventListener('mouseenter', () => div.style.background = '#faf0f4');
+                  div.addEventListener('mouseleave', () => div.style.background = '');
+                  div.addEventListener('click', () => {
+                    buscadorCat.value = p.nombre;
+                    sugerenciasCat.style.display = 'none';
+                    document.getElementById('form-filtros-catalogo').submit();
+                  });
+                  sugerenciasCat.appendChild(div);
+                });
+              }
+              sugerenciasCat.style.display = 'block';
+            });
+        }, 280);
+      });
+
+      document.addEventListener('click', function (e) {
+        if (!buscadorCat.contains(e.target) && !sugerenciasCat.contains(e.target)) {
+          sugerenciasCat.style.display = 'none';
+        }
+      });
+    }
+
+    // Bloque : botones +/- del stepper de cantidad
+  document.querySelectorAll('.ls-stepper-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const input = btn.parentElement.querySelector('.ls-stepper-input');
+        let valor = parseInt(input.value || '1', 10);
+        valor += parseInt(btn.dataset.step, 10);
+        if (valor < 1) valor = 1;
+        if (valor > 99) valor = 99;
+        input.value = valor;
+      });
+    });
+
+    // Bloque: envío del formulario "Agregar al carrito"
+    document.querySelectorAll('.form-agregar-carrito').forEach(function (form) {
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const boton = form.querySelector('button[type="submit"]');
+        const textoOriginal = boton.innerHTML;
+        boton.disabled = true;
+        boton.innerHTML = '<i class="bi bi-hourglass-split"></i> Agregando…';
+
+        fetch(form.action || window.location.href, {
+          method: 'POST',
+          headers: { 'X-Requested-With': 'XMLHttpRequest' },
+          body: new FormData(form),
+        })
+          .then(function (resp) {
+            if (resp.status === 401) {
+              return resp.json().then(function (data) {
+                window.location.href = data.url;
+              });
+            }
+            return resp.json().then(function (data) {
+              lsMostrarToast(data.mensaje, !data.ok);
+              if (data.ok) {
+                lsActualizarContadorCarrito(data.carrito_count);
+              }
+            });
+          })
+          .catch(function () {
+            lsMostrarToast('No se pudo conectar con el servidor.', true);
+          })
+          .finally(function () {
+            boton.disabled = false;
+            boton.innerHTML = textoOriginal;
+          });
+      });
+    });
+  });
+</script>
+{% endblock %}

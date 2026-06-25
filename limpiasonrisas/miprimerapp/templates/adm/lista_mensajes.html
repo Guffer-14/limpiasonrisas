@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% block title %}Lista de Mensajes{% endblock %}
+
+{% block contenido %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 style="font-family:'Fredoka One',cursive;color:#993556;">
+      💬 Mensajes y Consultas
+    </h2>
+    <a href="{% url 'adm_dashboard' %}" class="btn btn-ls-outline">
+      <i class="bi bi-arrow-left me-1"></i>Volver
+    </a>
+  </div>
+
+  <!-- Búsqueda y filtro de fechas -->
+  <form method="get" class="ls-form-card mb-3 p-3">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-5">
+        <label class="form-label fw-semibold small">Buscar</label>
+        <input type="text" name="q" value="{{ busqueda }}" class="form-control ls-input"
+               placeholder="Nombre, email, mensaje, quién atendió o resolvió…">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-semibold small">Desde</label>
+        <input type="date" name="desde" value="{{ fecha_desde }}" class="form-control ls-input">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-semibold small">Hasta</label>
+        <input type="date" name="hasta" value="{{ fecha_hasta }}" class="form-control ls-input">
+      </div>
+      <div class="col-md-1">
+        <input type="hidden" name="estado" value="{{ estado }}">
+        <button type="submit" class="btn btn-ls w-100">
+          <i class="bi bi-search"></i>
+        </button>
+      </div>
+    </div>
+    {% if busqueda or fecha_desde or fecha_hasta %}
+    <div class="mt-2">
+      <a href="?estado={{ estado }}" class="small text-muted">
+        <i class="bi bi-x-circle me-1"></i>Limpiar búsqueda
+      </a>
+    </div>
+    {% endif %}
+  </form>
+
+  <!-- Filtros -->
+  <div class="d-flex gap-2 mb-3">
+    <a href="?estado=todos&q={{ busqueda }}&desde={{ fecha_desde }}&hasta={{ fecha_hasta }}"
+       class="btn btn-sm {% if estado == 'todos' %}btn-ls{% else %}btn-ls-outline{% endif %}">
+      Todos ({{ mensajes|length }})
+    </a>
+    <a href="?estado=pendiente&q={{ busqueda }}&desde={{ fecha_desde }}&hasta={{ fecha_hasta }}"
+       class="btn btn-sm {% if estado == 'pendiente' %}btn-ls{% else %}btn-ls-outline{% endif %}">
+      ⏳ Pendientes
+    </a>
+    <a href="?estado=en_proceso&q={{ busqueda }}&desde={{ fecha_desde }}&hasta={{ fecha_hasta }}"
+       class="btn btn-sm {% if estado == 'en_proceso' %}btn-ls{% else %}btn-ls-outline{% endif %}">
+      🔄 En proceso
+    </a>
+    <a href="?estado=resuelto&q={{ busqueda }}&desde={{ fecha_desde }}&hasta={{ fecha_hasta }}"
+       class="btn btn-sm {% if estado == 'resuelto' %}btn-ls{% else %}btn-ls-outline{% endif %}">
+      ✅ Resueltos
+    </a>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table ls-table align-middle" style="font-size:.85rem;">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Fecha</th>
+          <th>Nombre</th>
+          <th>Email</th>
+          <th>Tipo</th>
+          <th>Mensaje</th>
+          <th class="text-center">Estado</th>
+          <th>Atendido por</th>
+          <th>Resuelto por</th>
+          <th>Fecha resolución</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in mensajes %}
+        <tr style="{% if m.estado_caso == 'pendiente' %}background:#fffbf0;{% endif %}">
+          <td>{{ m.id }}</td>
+          <td><small>{{ m.fecha|date:"d/m/Y H:i" }}</small></td>
+          <td>
+            <strong>{{ m.nombre }}</strong>
+            {% if m.es_clinica %}
+            <br><small class="text-muted">🦷 Clínica dental</small>
+            {% endif %}
+          </td>
+          <td><small>{{ m.email }}</small></td>
+          <td>
+            <span class="badge rounded-pill" style="background:#FBEAF0;color:#993556;font-size:.75rem;">
+              {{ m.get_tipo_consulta_display }}
+            </span>
+          </td>
+          <td>
+            <small class="text-muted">{{ m.mensaje|truncatechars:60 }}</small>
+          </td>
+          <td class="text-center">
+            {% if m.estado_caso == 'pendiente' %}
+              <span class="badge rounded-pill" style="background:#FEF3C7;color:#92400E;">⏳ Pendiente</span>
+            {% elif m.estado_caso == 'en_proceso' %}
+              <span class="badge rounded-pill" style="background:#DBEAFE;color:#1E40AF;">🔄 En proceso</span>
+            {% else %}
+              <span class="badge rounded-pill" style="background:#D1FAE5;color:#065F46;">✅ Resuelto</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if m.tomado_por %}
+              <small>{{ m.tomado_por.get_full_name|default:m.tomado_por.username }}</small>
+              <br><small class="text-muted">{{ m.tomado_por.groups.first.name|default:"ADM" }}</small>
+            {% else %}
+              <small class="text-muted">—</small>
+            {% endif %}
+          </td>
+          <td>
+            {% if m.resuelto_por %}
+              <small>{{ m.resuelto_por.get_full_name|default:m.resuelto_por.username }}</small>
+              <br><small class="text-muted">{{ m.resuelto_por.groups.first.name|default:"ADM" }}</small>
+            {% else %}
+              <small class="text-muted">—</small>
+            {% endif %}
+          </td>
+          <td>
+            {% if m.fecha_resolucion %}
+              <small>{{ m.fecha_resolucion|date:"d/m/Y H:i" }}</small>
+            {% else %}
+              <small class="text-muted">—</small>
+            {% endif %}
+          </td>
+          <td>
+            {% if m.estado_caso == 'resuelto' %}
+            <a href="{% url 'adm_resolver_mensaje' m.id %}" style="color:#993556;font-weight:700;text-decoration:none;">
+              Ver
+            </a>
+            {% elif m.estado_caso == 'en_proceso' %}
+            <a href="{% url 'adm_resolver_mensaje' m.id %}" style="color:#E07A4F;font-weight:700;text-decoration:none;">
+              Ver / Resolver
+            </a>
+            {% else %}
+            <a href="{% url 'adm_resolver_mensaje' m.id %}" style="color:#E07A4F;font-weight:700;text-decoration:none;">
+              Leer caso
+            </a>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="11" class="text-center text-muted">No hay mensajes</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

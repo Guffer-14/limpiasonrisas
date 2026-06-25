@@ -1,0 +1,587 @@
+/* ══════════════════════════════════════════════════
+   LIMPIA SONRISAS – Hoja de estilos principal
+   Paleta principal : Durazno & Crema
+   Paleta serena    : Mint & Verde salvia
+   ══════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fredoka+One&display=swap');
+
+:root {
+  --ls-rosa:        #E07A4F;
+  --ls-rosa-light:  #FDEADE;
+  --ls-morado:      #9C4A25;
+  --ls-amarillo:    #F2C96E;
+  --ls-verde:       #4CAF50;
+  --ls-naranja:     #F5B89A;
+  --ls-gris:        #FFF8F4;
+  --ls-text:        #2c2c2c;
+  --ls-muted:       #9C6A50;
+  --bs-font-sans-serif: 'Nunito', sans-serif;
+}
+
+/* ── Modo sereno (mint + verde salvia) ───────────── */
+body.modo-sereno {
+  --ls-rosa:        #3D7A5A;
+  --ls-rosa-light:  #DFF0E8;
+  --ls-morado:      #3D7A5A;
+  --ls-amarillo:    #A8D4BC;
+  --ls-naranja:     #A8D4BC;
+  --ls-gris:        #F4FAF7;
+  --ls-muted:       #6AAB8A;
+  background-color: #F4FAF7;
+}
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background-color: #FFF8F4;
+  color: var(--ls-text);
+  transition: background-color .4s, color .4s;
+}
+
+/* ── Botón cambio de tema ────────────────────────── */
+.btn-tema {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  background: white;
+  border: 2px solid var(--ls-rosa-light);
+  border-radius: 50px;
+  padding: 10px 18px;
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--ls-rosa);
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0,0,0,.12);
+  transition: all .25s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-tema:hover {
+  background: var(--ls-rosa-light);
+  transform: translateY(-2px);
+}
+
+/* ── Navbar ─────────────────────────────────────── */
+.ls-navbar {
+  background: white;
+  border-bottom: 3px solid var(--ls-rosa-light);
+  box-shadow: 0 2px 12px rgba(224,122,79,.10);
+}
+.ls-navbar .navbar-brand {
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.6rem;
+  color: var(--ls-rosa) !important;
+  letter-spacing: 1px;
+}
+.ls-navbar .nav-link {
+  color: var(--ls-text) !important;
+  font-weight: 600;
+  border-radius: 20px;
+  padding: 6px 14px !important;
+  transition: all .2s;
+}
+.ls-navbar .nav-link:hover,
+.ls-navbar .nav-link.active {
+  background: var(--ls-rosa-light);
+  color: var(--ls-rosa) !important;
+}
+
+/* ── Botones ─────────────────────────────────────── */
+.btn-ls {
+  background: var(--ls-rosa);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-weight: 700;
+  padding: 10px 28px;
+  transition: all .25s;
+  box-shadow: 0 4px 12px rgba(224,122,79,.25);
+}
+.btn-ls:hover {
+  background: var(--ls-morado);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(224,122,79,.35);
+}
+.btn-ls-outline {
+  border: 2px solid var(--ls-rosa);
+  color: var(--ls-rosa);
+  border-radius: 25px;
+  font-weight: 700;
+  padding: 8px 24px;
+  background: transparent;
+  transition: all .25s;
+}
+.btn-ls-outline:hover {
+  background: var(--ls-rosa);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.btn-ls-outline-naranjo {
+  border: 2px solid #E07A4F;
+  color: #E07A4F;
+  border-radius: 25px;
+  font-weight: 700;
+  padding: 8px 24px;
+  background: white;
+  transition: all .25s;
+}
+.btn-ls-outline-naranjo:hover {
+  background: #E07A4F;
+  color: white;
+  transform: translateY(-2px);
+}
+
+.btn-morado {
+  background: var(--ls-morado);
+  color: white;
+  border-radius: 25px;
+  font-weight: 700;
+  padding: 10px 28px;
+  border: none;
+  transition: all .25s;
+}
+.btn-morado:hover { background: #7a3318; color: white; transform: translateY(-2px); }
+
+/* ── Hero banner ─────────────────────────────────── */
+.ls-hero {
+  background: linear-gradient(135deg, var(--ls-rosa-light) 0%, #FDEADE 60%, #FFF0E0 100%);
+  padding: 80px 0 60px;
+  position: relative;
+  overflow: hidden;
+}
+.ls-hero::before {
+  content: '★';
+  font-size: 200px;
+  color: rgba(224,122,79,.06);
+  position: absolute;
+  top: -30px; right: -40px;
+  line-height: 1;
+}
+.ls-hero h1 {
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  color: var(--ls-morado);
+  line-height: 1.15;
+}
+.ls-hero .subtitle {
+  font-size: 1.15rem;
+  color: var(--ls-rosa);
+  font-weight: 600;
+}
+
+/* ── Títulos de sección ──────────────────────────── */
+.ls-section-title {
+  font-family: 'Fredoka One', cursive;
+  color: var(--ls-morado);
+  font-size: 2rem;
+  position: relative;
+  display: inline-block;
+}
+.ls-section-title::after {
+  content: '';
+  display: block;
+  height: 4px;
+  background: var(--ls-rosa);
+  border-radius: 2px;
+  margin-top: 6px;
+}
+
+/* ── Cards de categoría ──────────────────────────── */
+.ls-cat-card {
+  background: white;
+  border: 2px solid var(--ls-rosa-light);
+  border-radius: 20px;
+  padding: 24px 16px;
+  text-align: center;
+  transition: all .25s;
+  cursor: pointer;
+  text-decoration: none;
+  display: block;
+  color: var(--ls-text);
+}
+.ls-cat-card:hover {
+  border-color: var(--ls-rosa);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(224,122,79,.15);
+  color: var(--ls-rosa);
+}
+.ls-cat-card .ls-cat-icon {
+  font-size: 2.5rem;
+  color: var(--ls-rosa);
+  margin-bottom: 10px;
+}
+.ls-cat-card h6 { font-weight: 700; margin: 0; }
+
+/* Íconos SVG personalizados (sin equivalente fiel en Bootstrap Icons) */
+.ls-cat-icon-svg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+}
+.ls-cat-icon-svg svg {
+  width: 100%;
+  height: 100%;
+  color: inherit;
+  fill: currentColor;
+}
+.ls-cat-card .ls-cat-icon .ls-cat-icon-svg {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+/* ── Cards de producto ───────────────────────────── */
+.ls-product-card {
+  background: white;
+  border: 2px solid var(--ls-rosa-light);
+  border-radius: 20px;
+  overflow: hidden;
+  transition: all .25s;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.ls-product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 28px rgba(224,122,79,.18);
+  border-color: var(--ls-rosa);
+}
+.ls-product-card .card-img-wrapper {
+  background: var(--ls-rosa-light);
+  padding: 24px;
+  text-align: center;
+  height: 200px;
+  display: flex; align-items: center; justify-content: center;
+}
+.ls-product-card img {
+  max-height: 160px;
+  max-width: 100%;
+  object-fit: contain;
+}
+.ls-product-card .card-body {
+  padding: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.ls-product-card .marca-badge {
+  background: var(--ls-morado);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 12px;
+  display: inline-block;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.ls-product-card h5 { font-weight: 700; font-size: .95rem; flex: 1; }
+.ls-precio-badge {
+  background: var(--ls-rosa);
+  color: white;
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.3rem;
+  padding: 4px 16px;
+  border-radius: 50px;
+  display: inline-block;
+}
+.ls-precio-pack {
+  background: var(--ls-amarillo);
+  color: #3d2800;
+  font-size: .8rem;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 12px;
+  display: inline-block;
+}
+
+/* ── Estados de stock en tarjeta de producto ─────── */
+.badge-sin-stock {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: #C0392B;
+  color: #fff;
+  font-size: .7rem;
+  font-weight: 700;
+  padding: 3px 12px;
+  border-radius: 12px;
+  z-index: 2;
+}
+
+.badge-stock-bajo {
+  background: #FFF3CD;
+  color: #7A5B00;
+  font-size: .72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+}
+
+.ls-product-card.sin-stock .card-img-wrapper img,
+.ls-product-card.sin-stock .card-img-wrapper > div {
+  filter: grayscale(1);
+  opacity: .55;
+}
+
+.ls-product-card.sin-stock .ls-precio-badge {
+  background: var(--ls-rosa-light);
+  color: #8a8a8a;
+}
+
+.ls-product-card.sin-stock h5 {
+  color: #8a8a8a;
+}
+
+/* ── Formularios ─────────────────────────────────── */
+.ls-form-card {
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(224,122,79,.12);
+  border: 2px solid var(--ls-rosa-light);
+  overflow: hidden;
+}
+.ls-form-header {
+  background: linear-gradient(135deg, var(--ls-rosa), var(--ls-morado));
+  color: white;
+  padding: 28px 32px 20px;
+  text-align: center;
+}
+.ls-form-header h3 {
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.8rem;
+  margin: 0;
+}
+.ls-form-body { padding: 32px; }
+.ls-input {
+  border: 2px solid #F5D5C0 !important;
+  border-radius: 12px !important;
+  padding: 10px 14px !important;
+  font-size: .95rem !important;
+  transition: border-color .2s !important;
+}
+.ls-input:focus {
+  border-color: var(--ls-rosa) !important;
+  box-shadow: 0 0 0 3px rgba(224,122,79,.12) !important;
+}
+.form-label {
+  font-weight: 700;
+  color: var(--ls-muted);
+  font-size: .875rem;
+  margin-bottom: 4px;
+}
+
+/* ── Estrellas decorativas ───────────────────────── */
+.ls-star { color: var(--ls-amarillo); }
+.ls-deco-star {
+  display: inline-block;
+  color: var(--ls-amarillo);
+  font-size: 1.2rem;
+  animation: spin 6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Sección "Por qué nosotros" ──────────────────── */
+.ls-feature-icon {
+  width: 64px; height: 64px;
+  background: var(--ls-rosa-light);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.8rem;
+  color: var(--ls-rosa);
+  margin: 0 auto 16px;
+  transition: all .25s;
+}
+.ls-feature-card:hover .ls-feature-icon {
+  background: var(--ls-rosa);
+  color: white;
+  transform: scale(1.1);
+}
+
+/* ── Dashboard / Panel ───────────────────────────── */
+.ls-dashboard-header {
+  background: linear-gradient(135deg, var(--ls-rosa-light), #FFF0E0);
+  border-radius: 20px;
+  padding: 32px;
+  margin-bottom: 28px;
+}
+.ls-stat-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  border-left: 5px solid var(--ls-rosa);
+  box-shadow: 0 4px 12px rgba(0,0,0,.06);
+  transition: .2s;
+}
+.ls-stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(224,122,79,.12); }
+.ls-stat-card .stat-number {
+  font-family: 'Fredoka One', cursive;
+  font-size: 2.5rem;
+  color: var(--ls-rosa);
+  line-height: 1;
+}
+.ls-table thead { background: var(--ls-rosa); color: white; }
+.ls-table thead th { font-weight: 700; }
+
+/* ── Estado badges ───────────────────────────────── */
+.badge-pendiente      { background: #FFF3CD; color: #856404; }
+.badge-aprobado       { background: #D1FAE5; color: #065F46; }
+.badge-enviado        { background: #DBEAFE; color: #1E40AF; }
+.badge-entregado      { background: #D1FAE5 !important; color: #065F46 !important; }
+.badge-en_preparacion { background: #FEF3C7 !important; color: #92400E !important; }
+.badge-cancelado      { background: #FEE2E2 !important; color: #991B1B !important; }
+.badge-en_proceso     { background: #FEF3C7 !important; color: #92400E !important; }
+.badge-en_proceso     { background: #FEF3C7 !important; color: #92400E !important; }
+.badge-devolucion     { background: #FCE7F3 !important; color: #9D174D !important; }
+
+/* ── Footer ──────────────────────────────────────── */
+.ls-footer {
+  background: linear-gradient(135deg, #3D1A08 0%, #5C2E14 100%);
+  color: #FDEADE;
+  padding: 56px 0 24px;
+}
+.ls-footer h5 {
+  font-family: 'Fredoka One', cursive;
+  color: white;
+  font-size: 1.2rem;
+  margin-bottom: 16px;
+}
+.ls-footer a { color: #F5B89A; text-decoration: none; transition: color .2s; }
+.ls-footer a:hover { color: var(--ls-amarillo); }
+.ls-footer .footer-brand {
+  font-family: 'Fredoka One', cursive;
+  font-size: 2rem;
+  color: white;
+}
+.ls-footer-bottom {
+  border-top: 1px solid rgba(255,255,255,.1);
+  margin-top: 40px;
+  padding-top: 20px;
+  font-size: .85rem;
+  color: #C48A6A;
+}
+
+/* ── Alertas ─────────────────────────────────────── */
+.ls-alert {
+  border-radius: 16px;
+  border: none;
+  font-weight: 600;
+  padding: 14px 20px;
+}
+
+.ls-alert.alert-error {
+  background-color: #FDE8E8;
+  color: #A33A3A;
+  border-left: 4px solid #C0392B;
+}
+.ls-alert.alert-warning {
+  background-color: #FFF3D6;
+  color: #8A6500;
+  border-left: 4px solid var(--ls-naranja);
+}
+.ls-alert.alert-success {
+  background-color: #E6F4EA;
+  color: #1E6B3C;
+  border-left: 4px solid #2E8B57;
+}
+
+/* ── Auth pages ──────────────────────────────────── */
+.ls-auth-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--ls-rosa-light) 0%, #FFF0E0 100%);
+  display: flex; align-items: center;
+}
+.ls-auth-deco {
+  font-size: 8rem;
+  color: rgba(224,122,79,.1);
+  position: absolute;
+  pointer-events: none;
+}
+
+/* ── Responsive ──────────────────────────────────── */
+@media (max-width: 768px) {
+  .ls-hero { padding: 50px 0 40px; }
+  .ls-form-body { padding: 20px; }
+  .ls-stat-card .stat-number { font-size: 1.8rem; }
+  .btn-tema { bottom: 16px; right: 16px; font-size: .75rem; padding: 8px 14px; }
+}
+
+.ls-stepper {
+  border: 2px solid var(--ls-rosa-light);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.ls-stepper-btn {
+  background: var(--ls-rosa-light);
+  border: none;
+  width: 28px;
+  height: 32px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ls-rosa);
+  cursor: pointer;
+}
+.ls-stepper-btn:hover { background: var(--ls-rosa); color: white; }
+.ls-stepper-input {
+  width: 32px;
+  text-align: center;
+  border: none;
+  font-weight: 700;
+  font-size: .85rem;
+  -moz-appearance: textfield;
+}
+.ls-stepper-input::-webkit-outer-spin-button,
+.ls-stepper-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* ── Editar precios (formulario compacto por bloques) ────────────── */
+.ls-precio-card {
+  background: white; border-radius: 14px; border: 1px solid var(--ls-rosa-light);
+  overflow: hidden;
+}
+.ls-precio-card-header {
+  background: linear-gradient(135deg, var(--ls-rosa), var(--ls-morado));
+  color: white; padding: 9px 18px; font-weight: 700; font-size: .82rem;
+}
+.ls-precio-card-body { padding: 14px 18px; }
+.ls-box-readonly {
+  background: #f8f6f4; border: 1px solid #eee; border-radius: 10px;
+  padding: 7px 10px; text-align: center; height: 100%;
+}
+.ls-box-input {
+  background: white; border: 1.5px solid #F5D5C0; border-radius: 10px;
+  padding: 6px 10px; height: 100%;
+}
+.ls-box-label {
+  font-size: .62rem; color: var(--ls-muted); font-weight: 700;
+  text-transform: uppercase; display: block; margin-bottom: 2px;
+}
+.ls-box-valor { font-size: .92rem; font-weight: 800; color: #2c2c2c; }
+.ls-box-input input {
+  width: 100%; border: none; font-size: .88rem; font-weight: 700;
+  color: var(--ls-morado); outline: none; background: transparent;
+}
+.ls-formula-chica { font-size: .6rem; color: #aaa; margin-top: 2px; display: block; }
+.ls-help-box { background: #f0e6f7; border: 1px solid #d4b8e8; border-radius: 10px; padding: 8px 12px; height: 100%; }
+.ls-help-toggle { background: transparent; padding: 0; color: #6B3FA0; font-size: .74rem; }
+.ls-help-row { display: flex; justify-content: space-between; font-size: .74rem; padding: 4px 0; border-bottom: 1px dashed #d4b8e8; margin-top: 6px;}
+.ls-help-row:last-child { border-bottom: none; }
+.ls-help-desc { color: #8a6a9a; font-size: .65rem; }
+.ls-collapsible {
+  background: #f8f6f4; border-radius: 10px; padding: 8px 14px; cursor: pointer;
+  display: flex; justify-content: space-between; align-items: center;
+  font-weight: 700; color: var(--ls-morado); font-size: .76rem;
+}

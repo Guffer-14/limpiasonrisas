@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}Panel ADM{% endblock %}
+
+{% block contenido %}
+<div class="container py-4">
+    <h2 style="font-family:'Fredoka One',cursive;color:#993556;">
+        🛡️ Panel Administrador
+    </h2>
+
+    <!-- Stats -->
+    <div class="row g-3 mt-3 mb-4">
+        <div class="col-md-3">
+            <div class="ls-stat-card" style="border-left-color:#993556;">
+                <div class="stat-number" style="color:#993556;">{{ total_usuarios }}</div>
+                <div class="text-muted small fw-bold">Usuarios</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="ls-stat-card" style="border-left-color:#6B3FA0;">
+                <div class="stat-number" style="color:#6B3FA0;">{{ total_productos }}</div>
+                <div class="text-muted small fw-bold">Productos</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="ls-stat-card" style="border-left-color:#4CAF50;">
+                <div class="stat-number" style="color:#4CAF50;">{{ total_pedidos }}</div>
+                <div class="text-muted small fw-bold">Pedidos totales</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="ls-stat-card" style="border-left-color:#F07D3A;">
+                <div class="stat-number" style="color:#F07D3A;">{{ pendientes }}</div>
+                <div class="text-muted small fw-bold">Pedidos pendientes</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accesos rápidos -->
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="ls-form-card p-4 text-center">
+                <i class="bi bi-people" style="font-size:2.5rem;color:#993556;"></i>
+                <h5 class="mt-2 fw-bold">Usuarios</h5>
+                <p class="text-muted small">Gestiona clínicas y público general</p>
+                <a href="{% url 'adm_lista_usuarios' %}" class="btn btn-ls w-100">
+                    <i class="bi bi-arrow-right me-2"></i>Ver usuarios
+                </a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="ls-form-card p-4 text-center">
+                <i class="bi bi-box-seam" style="font-size:2.5rem;color:#6B3FA0;"></i>
+                <h5 class="mt-2 fw-bold">Productos</h5>
+                <p class="text-muted small">Gestiona el catálogo de productos</p>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'adm_lista_productos' %}" class="btn btn-ls w-100" style="background:#6B3FA0;">
+                        <i class="bi bi-box-seam me-2"></i>Gestionar productos
+                    </a>
+                    <a href="{% url 'adm_precios_productos' %}" class="btn btn-ls-outline w-100 mb-2">
+                        <i class="bi bi-tag me-2"></i>Gestionar precios
+                    </a>
+                    <a href="{% url 'adm_lista_compras' %}" class="btn btn-ls-outline w-100">
+                        <i class="bi bi-truck me-2"></i>Compras a proveedores
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="ls-form-card p-4 text-center">
+                <i class="bi bi-chat-dots" style="font-size:2.5rem;color:#4CAF50;"></i>
+                <h5 class="mt-2 fw-bold">Mensajes</h5>
+                <p class="text-muted small">Revisa mensajes y consultas</p>
+                <a href="{% url 'adm_lista_mensajes' %}" class="btn btn-ls w-100" style="background:#4CAF50;">
+                    <i class="bi bi-arrow-right me-2"></i>Ver mensajes
+                </a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="ls-form-card p-4 text-center">
+                <i class="bi bi-folder" style="font-size:2.5rem;color:#4CAF50;"></i>
+                <h5 class="mt-2 fw-bold">Categorías</h5>
+                <p class="text-muted small">Gestiona las categorías del catálogo</p>
+                <a href="{% url 'adm_lista_categorias' %}" class="btn btn-ls w-100" style="background:#4CAF50;">
+                    <i class="bi bi-arrow-right me-2"></i>Ver categorías
+                </a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="ls-form-card p-4 text-center">
+                <i class="bi bi-receipt" style="font-size:2.5rem;color:var(--ls-rosa);"></i>
+                <h5 class="mt-2 fw-bold">Pedidos</h5>
+                <p class="text-muted small">Gestiona pedidos de clínicas y público</p>
+                <a href="{% url 'adm_lista_pedidos' %}" class="btn btn-ls w-100">
+                    <i class="bi bi-arrow-right me-2"></i>Ver pedidos
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+</div>
+</div>

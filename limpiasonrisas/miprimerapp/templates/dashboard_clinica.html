@@ -1,0 +1,360 @@
+{% extends 'base.html' %} {% load ls_filters %}
+{% block title %}Mi Panel – {{ clinica.nombre_clinica }}{% endblock %}
+
+{% block contenido %}
+<div class="container py-4">
+
+  <!-- Header -->
+  <div class="ls-dashboard-header mb-4">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h2 style="font-family:'Fredoka One',cursive; color:#993556; margin:0;">
+          🏥 {{ clinica.nombre_clinica }}
+        </h2>
+        <p class="text-muted mb-1">{{ clinica.get_region_display }} · {{ clinica.ciudad }}</p>
+        {% if clinica.verificada %}
+        <span class="badge rounded-pill" style="background:#D1FAE5;color:#065F46;">
+          <i class="bi bi-patch-check-fill me-1"></i>Clínica verificada
+        </span>
+        {% else %}
+        <span class="badge rounded-pill" style="background:#FFF3CD;color:#856404;">
+          <i class="bi bi-hourglass-split me-1"></i>En revisión
+        </span>
+        {% endif %}
+      </div>
+      <div class="col-md-4 text-md-end mt-3 mt-md-0 d-flex gap-2 justify-content-md-end">
+        <a href="{% url 'mi_stock' %}" class="btn btn-ls-outline-naranjo">
+          <i class="bi bi-box-seam me-2"></i>Mi stock
+        </a>
+        <a href="{% url 'catalogo' %}" class="btn btn-ls-outline-naranjo">
+          <i class="bi bi-grid-3x3-gap me-2"></i>Ver catálogo
+        </a>
+      </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <a href="{% url 'pedidos_activos' %}" class="text-decoration-none">
+        <div class="ls-stat-card" style="cursor:pointer; transition:.2s; border-left-color:#993556;">
+          <div class="stat-number" style="color:#993556;">{{ pedidos_activos_count }}</div>
+          <div class="text-muted small fw-bold">Pedidos activos</div>
+          <div class="small mt-1" style="color:#993556;"><i class="bi bi-arrow-right me-1"></i>Ver estado</div>
+        </div>
+      </a>
+    </div>
+    <div class="col-md-4">
+      <a href="{% url 'mis_pedidos' %}" class="text-decoration-none">
+        <div class="ls-stat-card" style="cursor:pointer; transition:.2s; border-left-color:#6B3FA0;">
+          <div class="stat-number" style="color:#6B3FA0;">{{ pedidos_count }}</div>
+          <div class="text-muted small fw-bold">Mis pedidos</div>
+          <div class="small mt-1" style="color:#6B3FA0;"><i class="bi bi-arrow-right me-1"></i>Ver historial</div>
+        </div>
+      </a>
+    </div>
+    <div class="col-md-4">
+      <div class="ls-stat-card" style="border-left-color:#4CAF50;">
+        <div class="stat-number" style="color:#4CAF50;">${{ total_mes|floatformat:0 }}</div>
+        <div class="text-muted small fw-bold">Total gastado este mes</div>
+        <div class="small mt-1 text-muted">Pedidos confirmados</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- Formulario solicitar stock -->
+    <div class="col-lg-5">
+      <div class="ls-form-card" style="overflow:visible;">
+        <div class="ls-form-header">
+          <h5 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Agregar al carrito</h5>
+        </div>
+        <div class="p-4">
+          <form method="post" id="form-stock" autocomplete="off">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="agregar_carrito">
+            <input type="hidden" name="producto_id" id="hidden-producto-id">
+
+            <!-- Buscador con autocomplete -->
+            <div class="mb-3" style="position:relative; z-index:1000;">
+              <label class="form-label fw-semibold">Producto</label>
+              <input type="text" id="buscador-producto" class="form-control ls-input"
+                placeholder="Escribe el nombre o marca… ej: elmex, vitis" autocomplete="off">
+              <div id="sugerencias" class="position-absolute w-100 bg-white border rounded-3 shadow-sm"
+                style="z-index:999; display:none; min-height:250px; max-height:350px; overflow-y:scroll; top:100%;">
+              </div>
+            </div>
+
+            <!-- Precio B2D -->
+            <div class="mb-3" id="bloque-precio" style="display:none;">
+              <label class="form-label fw-semibold">Precio B2D por unidad</label>
+              <div class="input-group">
+                <span class="input-group-text" style="background:#FBEAF0;color:#993556;font-weight:700;">$</span>
+                <input type="text" id="precio-display" class="form-control ls-input"
+                  style="background:#FBEAF0;color:#993556;font-weight:700;font-size:1.1rem;" readonly>
+              </div>
+            </div>
+
+            <!-- Cantidad -->
+            <div class="mb-3" id="bloque-cantidad" style="display:none;">
+              <label class="form-label fw-semibold">Cantidad</label>
+              <input type="number" name="cantidad" id="input-cantidad" min="1" value="1" class="form-control ls-input">
+            </div>
+
+            <!-- Total -->
+            <div class="mb-3" id="bloque-total" style="display:none;">
+              <label class="form-label fw-semibold">Total a pagar|clp</label>
+              <div class="input-group">
+                <span class="input-group-text" style="background:#E8F5E9;color:#2e7d32;font-weight:700;">$</span>
+                <input type="text" id="total-display" class="form-control ls-input"
+                  style="background:#E8F5E9;color:#2e7d32;font-weight:700;font-size:1.1rem;" readonly>
+              </div>
+              <div class="form-text" style="color:#6B3FA0;">Precio B2D × cantidad · sin IVA</div>
+            </div>
+
+            <!-- Observaciones -->
+            <div class="mb-4" id="bloque-obs" style="display:none;">
+              <label class="form-label fw-semibold">Observaciones <span
+                  class="text-muted fw-normal">(opcional)</span></label>
+              <textarea name="observaciones" rows="2" class="form-control ls-input"
+                placeholder="Urgencia, indicaciones…"></textarea>
+            </div>
+
+            <!-- Botón -->
+            <div class="d-grid" id="bloque-boton" style="display:none;">
+              <button type="submit" id="btn-agregar" class="btn btn-ls" disabled>
+                <i class="bi bi-cart-plus me-2"></i>Agregar al carrito
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Carrito inline -->
+    <div class="col-lg-7">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0" style="color:#2c1a23;">
+          <i class="bi bi-cart3 me-2" style="color:#993556;"></i>Mi carrito
+        </h5>
+        {% if carrito_items %}
+        <a href="{% url 'finalizar_pedido' %}" class="btn btn-ls">
+          <i class="bi bi-send-check me-2"></i>Finalizar pedido
+        </a>
+        {% endif %}
+      </div>
+
+      {% if carrito_items %}
+      <div class="table-responsive">
+        <table class="table ls-table align-middle" style="font-size:.9rem;">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Producto</th>
+              <th style="width:110px;">Cantidad</th>
+              <th>Precio B2D</th>
+              <th>Subtotal</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in carrito_items %}
+            <tr>
+              <td class="text-muted">{{ forloop.counter }}</td>
+              <td>
+                <strong>{{ item.producto.nombre }}</strong>
+                {% if item.producto.marca %}<br><small class="text-muted">{{ item.producto.marca }}</small>{% endif %}
+              </td>
+              <td>
+                <form method="post" class="d-flex gap-1 align-items-center">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="actualizar_item">
+                  <input type="hidden" name="item_id" value="{{ item.pk }}">
+                  <input type="number" name="cantidad" value="{{ item.cantidad }}" min="0"
+                    class="form-control form-control-sm ls-input text-center" style="width:58px;"
+                    onchange="this.form.submit()">
+                </form>
+              </td>
+              <td>${{ item.precio_unitario|clp }}</td>
+              <td><strong style="color:#2e7d32;">${{ item.subtotal|clp }}</strong></td>
+              <td>
+                <form method="post" id="form-eliminar-{{ item.pk }}">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="eliminar_item">
+                  <input type="hidden" name="item_id" value="{{ item.pk }}">
+                  <button type="button" class="btn btn-sm btn-outline-danger"
+                    onclick="lsConfirmarEliminar('{{ item.pk }}', '{{ item.producto.nombre|escapejs }}')">
+                    <i class="bi bi-trash3"></i>
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr style="background:#f8f6f4;">
+              <td colspan="4" class="text-end fw-semibold">Neto (sin IVA)</td>
+              <td colspan="2" class="fw-bold">${{ carrito_neto|clp }}</td>
+            </tr>
+            <tr style="background:#f8f6f4;">
+              <td colspan="4" class="text-end text-muted small">IVA (19%)</td>
+              <td colspan="2" class="text-muted small">${{ carrito_iva|clp }}</td>
+            </tr>
+            <tr style="background:#FBEAF0;">
+              <td colspan="4" class="text-end fw-bold" style="color:#993556;font-size:1.05rem;">Total con IVA</td>
+              <td colspan="2" class="fw-bold" style="color:#993556;font-size:1.1rem;">${{ carrito_total|clp }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <div class="d-grid mt-2">
+        <a href="{% url 'finalizar_pedido' %}" class="btn btn-ls btn-lg">
+          <i class="bi bi-send-check me-2"></i>Finalizar pedido
+        </a>
+      </div>
+
+      {% else %}
+      <div class="text-center py-5 rounded-3" style="background:#f8f6f4;">
+        <div style="font-size:3.5rem;color:#e8d5dc;">🛒</div>
+        <p class="text-muted mt-2">Tu carrito está vacío.<br>Busca un producto a la izquierda para comenzar.</p>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal confirmar eliminar producto del carrito -->
+<div class="modal fade" id="modalEliminarItem" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold" style="color:#993556;">
+          <i class="bi bi-trash3 me-2"></i>¿Eliminar producto?
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted mb-0">
+          ¿Quieres quitar <strong id="nombreProductoEliminar"></strong> de tu carrito?
+        </p>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-ls-outline" data-bs-dismiss="modal">
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-danger" id="btnConfirmarEliminar">
+          <i class="bi bi-trash3 me-2"></i>Sí, eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+  let lsFormAEliminar = null;
+
+  function lsConfirmarEliminar(itemPk, nombreProducto) {
+    lsFormAEliminar = document.getElementById('form-eliminar-' + itemPk);
+    document.getElementById('nombreProductoEliminar').textContent = nombreProducto;
+    const modal = new bootstrap.Modal(document.getElementById('modalEliminarItem'));
+    modal.show();
+  }
+
+  document.getElementById('btnConfirmarEliminar').addEventListener('click', function () {
+    if (lsFormAEliminar) {
+      lsFormAEliminar.submit();
+    }
+  });
+
+  (function () {
+    const buscador = document.getElementById('buscador-producto');
+    const sugerencias = document.getElementById('sugerencias');
+    const hiddenId = document.getElementById('hidden-producto-id');
+    const precioDisp = document.getElementById('precio-display');
+    const inputCant = document.getElementById('input-cantidad');
+    const totalDisp = document.getElementById('total-display');
+    const btnAgregar = document.getElementById('btn-agregar');
+    let precioActual = 0;
+    let debounceTimer;
+
+    const bloques = ['bloque-precio', 'bloque-cantidad', 'bloque-total', 'bloque-obs', 'bloque-boton'];
+
+    function clp(n) { return n.toLocaleString('es-CL'); }
+
+    function mostrarBloques() {
+      bloques.forEach(id => {
+        document.getElementById(id).style.removeProperty('display');
+      });
+      btnAgregar.disabled = false;
+    }
+
+    function ocultarBloques() {
+      bloques.forEach(id => { document.getElementById(id).style.display = 'none'; });
+      btnAgregar.disabled = true;
+      hiddenId.value = '';
+      precioActual = 0;
+    }
+
+    function calcTotal() {
+      const cant = parseInt(inputCant.value) || 1;
+      totalDisp.value = clp(precioActual * cant);
+    }
+
+    buscador.addEventListener('input', function () {
+      clearTimeout(debounceTimer);
+      const q = this.value.trim();
+      if (q.length < 2) { sugerencias.style.display = 'none'; ocultarBloques(); return; }
+      debounceTimer = setTimeout(() => {
+        fetch(`/api/buscar-productos/?q=${encodeURIComponent(q)}`)
+          .then(r => r.json())
+          .then(data => {
+            sugerencias.innerHTML = '';
+            if (!data.results.length) {
+              sugerencias.innerHTML = '<div class="px-3 py-2 text-muted small">Sin resultados</div>';
+            } else {
+              data.results.forEach(p => {
+                const div = document.createElement('div');
+                div.className = 'px-3 py-2 d-flex justify-content-between align-items-center';
+                div.style.cssText = 'cursor:pointer; border-bottom:1px solid #f0e6ec; min-height:60px;';
+                div.innerHTML = `
+  <div class="d-flex justify-content-between align-items-center w-100">
+    <span><strong>${p.nombre}</strong>${p.marca ? '<br><small class="text-muted">' + p.marca + '</small>' : ''}</span>
+    <div class="text-end ms-2">
+      <small class="text-muted d-block">Público: $${p.precio.toLocaleString('es-CL')}</small>
+      <span class="badge rounded-pill" style="background:#FBEAF0;color:#993556;">B2D: $${p.precio_b2d.toLocaleString('es-CL')}</span>
+    </div>
+  </div>`;
+                div.addEventListener('mouseenter', () => div.style.background = '#faf0f4');
+                div.addEventListener('mouseleave', () => div.style.background = '');
+                div.addEventListener('click', () => {
+                  buscador.value = p.nombre;
+                  hiddenId.value = p.id;
+                  precioActual = p.precio_b2d;
+                  precioDisp.value = clp(p.precio_b2d);
+                  inputCant.value = 1;
+                  sugerencias.style.display = 'none';
+                  mostrarBloques();
+                  calcTotal();
+                });
+                sugerencias.appendChild(div);
+              });
+            }
+            sugerencias.style.display = 'block';
+          });
+      }, 280);
+    });
+
+    inputCant.addEventListener('input', calcTotal);
+
+    document.addEventListener('click', e => {
+      if (!buscador.contains(e.target) && !sugerencias.contains(e.target)) {
+        sugerencias.style.display = 'none';
+      }
+    });
+  })();
+</script>
+{% endblock %}

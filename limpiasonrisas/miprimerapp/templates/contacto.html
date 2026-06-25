@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% block title %}Contacto{% endblock %}
+
+{% block contenido %}
+<div style="background: linear-gradient(135deg, #FBEAF0, #ede0f5); padding: 48px 0 32px;">
+  <div class="container text-center">
+    <h1 class="ls-section-title">💬 Contáctanos</h1>
+    <p class="text-muted mt-2">Escríbenos y te respondemos a la brevedad</p>
+  </div>
+</div>
+
+<div class="container py-5">
+  <div class="row g-5 align-items-start">
+    <!-- Formulario -->
+    <div class="col-lg-7">
+      <div class="ls-form-card">
+        <div class="ls-form-header">
+          <h3>📋 Formulario de contacto</h3>
+          <p class="mb-0 mt-1" style="opacity:.85; font-size:.95rem;">
+            ¿Quieres inscribir tu clínica, hacer un pedido o tienes alguna consulta?
+          </p>
+        </div>
+        <div class="ls-form-body">
+          <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+            <div class="row g-3">
+
+              <!-- Nombre -->
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">{{ form.nombre.label }} *</label>
+                {{ form.nombre }}
+                {% if form.nombre.errors %}
+                <div class="text-danger small mt-1">{{ form.nombre.errors }}</div>
+                {% endif %}
+              </div>
+
+              <!-- Email -->
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">{{ form.email.label }} *</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                <div class="text-danger small mt-1">{{ form.email.errors }}</div>
+                {% endif %}
+              </div>
+
+              <!-- Teléfono -->
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">{{ form.telefono.label }} *</label>
+                {{ form.telefono }}
+                <div class="form-text">Ej: 912345678 (9 dígitos, sin espacios)</div>
+                {% if form.telefono.errors %}
+                <div class="text-danger small mt-1">{{ form.telefono.errors }}</div>
+                {% endif %}
+              </div>
+
+              <!-- Soy Clínica Dental -->
+              <div class="col-md-6 d-flex align-items-center">
+                <div class="form-check mt-4">
+                  {{ form.es_clinica }}
+                  <label class="form-check-label fw-semibold small" for="{{ form.es_clinica.id_for_label }}">
+                    🦷 Soy Clínica Dental
+                  </label>
+                </div>
+              </div>
+
+              <!-- Dirección -->
+              <div class="col-12">
+                <label class="form-label fw-semibold small">{{ form.direccion.label }} *</label>
+                {{ form.direccion }}
+                {% if form.direccion.errors %}
+                <div class="text-danger small mt-1">{{ form.direccion.errors }}</div>
+                {% endif %}
+              </div>
+
+              <!-- Región -->
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">{{ form.region.label }} *</label>
+                {{ form.region }}
+              </div>
+
+              <!-- Tipo consulta -->
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">{{ form.tipo_consulta.label }} *</label>
+                {{ form.tipo_consulta }}
+              </div>
+
+              <!-- Canal respuesta -->
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">{{ form.canal_respuesta.label }} *</label>
+                {{ form.canal_respuesta }}
+              </div>
+
+              <!-- Horario -->
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small">{{ form.horario_respuesta.label }} *</label>
+                {{ form.horario_respuesta }}
+              </div>
+
+              <!-- Días disponibles -->
+              <div class="col-12">
+                <label class="form-label fw-semibold small">Días disponibles para respuesta *</label>
+                <div class="p-3 rounded-3" style="background:#f8f6f4;border:1px solid #eee;">
+                  <div class="row g-2">
+                    {% for value, label in form.dias_respuesta.field.choices %}
+                    <div class="col-md-3">
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox"
+                               name="dias_respuesta" value="{{ value }}"
+                               id="dia_{{ value }}">
+                        <label class="form-check-label small" for="dia_{{ value }}">{{ label }}</label>
+                      </div>
+                    </div>
+                    {% endfor %}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Mensaje -->
+              <div class="col-12">
+                <label class="form-label fw-semibold small">{{ form.mensaje.label }} *</label>
+                {{ form.mensaje }}
+                {% if form.mensaje.errors %}
+                <div class="text-danger small mt-1">{{ form.mensaje.errors }}</div>
+                {% endif %}
+              </div>
+
+              <!-- Adjunto -->
+              <div class="col-12">
+                <label class="form-label fw-semibold small">{{ form.adjunto.label }}</label>
+                {{ form.adjunto }}
+                <div class="form-text">PDF, imagen u otro (máx. 5 MB)</div>
+              </div>
+
+            </div>
+            <div class="mt-4 d-grid">
+              <button type="submit" class="btn btn-ls btn-lg">
+                <i class="bi bi-send-heart me-2"></i>Enviar mensaje
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info de contacto -->
+    <div class="col-lg-5">
+      <div class="p-4 rounded-4 mb-4" style="background:#FBEAF0;">
+        <h5 style="font-family:'Fredoka One',cursive; color:#993556;">
+          <i class="bi bi-whatsapp text-success me-2"></i>WhatsApp directo
+        </h5>
+        <p class="text-muted mb-3">La forma más rápida de comunicarse con nosotros</p>
+        <a href="https://wa.me/56964184917" target="_blank" class="btn btn-ls w-100">
+          +569 6418 4917
+        </a>
+      </div>
+
+      <div class="p-4 rounded-4 mb-4" style="background:#f0e6f7;">
+        <h5 style="font-family:'Fredoka One',cursive; color:#6B3FA0;">
+          <i class="bi bi-building-check me-2"></i>¿Eres clínica dental?
+        </h5>
+        <p class="text-muted mb-3">
+          Accede a precios especiales, sistema de solicitud de stock y facturación.
+        </p>
+        <a href="{% url 'inscripcion_clinica' %}" class="btn btn-morado w-100">
+          Inscribir mi clínica
+        </a>
+      </div>
+
+      <div class="p-4 rounded-4" style="background:#f8f6f4; border: 2px solid #eee;">
+        <h5 class="fw-bold" style="color:#2c1a23;">Información</h5>
+        <ul class="list-unstyled text-muted">
+          <li class="mb-2"><i class="bi bi-geo-alt-fill me-2" style="color:#993556;"></i>Temuco, La Araucanía</li>
+          <li class="mb-2"><i class="bi bi-envelope-fill me-2" style="color:#993556;"></i>limpiasonrisas.spa@gmail.com</li>
+          <li class="mb-2"><i class="bi bi-clock-fill me-2" style="color:#993556;"></i>Lun–Vie 9:00–18:00</li>
+          <li><i class="bi bi-truck-front-fill me-2" style="color:#993556;"></i>Despacho a todo Chile</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

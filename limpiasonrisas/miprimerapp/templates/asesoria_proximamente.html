@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Asesoría{% endblock %}
+
+{% block contenido %}
+
+<!-- ══ ASESORÍA — PRÓXIMAMENTE ════════════════════════════════════════════ -->
+<section class="ls-hero" style="padding:90px 0;">
+  <div class="container text-center">
+    <div class="row justify-content-center">
+      <div class="col-lg-7">
+        <p class="subtitle mb-2">
+          <span class="ls-deco-star">✨</span> Asesoría personalizada
+        </p>
+        <i class="bi bi-search-heart" style="font-size:3.5rem;color:var(--ls-rosa);"></i>
+        <h1 class="my-4">
+          Estamos construyendo<br>
+          <span style="color:var(--ls-morado);">tu asesoría a medida</span> 🦷
+        </h1>
+        <p class="lead mb-4" style="color:#5a3a48;">
+          Muy pronto vas a poder responder unas preguntas rápidas sobre tus
+          hábitos, tu boca y tus necesidades, y te armaremos un carrito
+          sugerido con los productos que más te convienen — igual que en
+          una asesoría presencial.
+        </p>
+        <p class="mb-5" style="color:var(--ls-muted); font-size:.95rem;">
+          Si tu duda es urgente, igual puedes escribirnos desde el
+          formulario de contacto y te respondemos a la brevedad.
+        </p>
+        <div class="d-flex flex-wrap justify-content-center gap-3">
+          <a href="{% url 'catalogo' %}" class="btn btn-ls btn-lg">
+            <i class="bi bi-bag-heart me-2"></i>Ver catálogo mientras tanto
+          </a>
+          <a href="{% url 'contacto' %}" class="btn btn-ls-outline btn-lg">
+            <i class="bi bi-envelope-heart me-2"></i>Escríbenos tu duda
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

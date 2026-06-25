@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}Crear Producto{% endblock %}
+
+{% block contenido %}
+<div class="container py-4" style="max-width:700px;">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 style="font-family:'Fredoka One',cursive;color:#993556;">
+      ➕ Crear Producto
+    </h2>
+    <a href="{% url 'adm_lista_productos' %}" class="btn btn-ls-outline">
+      <i class="bi bi-arrow-left me-1"></i>Volver
+    </a>
+  </div>
+
+  <div class="ls-form-card">
+    <div class="ls-form-header">
+      <h5 class="mb-0"><i class="bi bi-box-seam me-2"></i>Datos del producto</h5>
+    </div>
+    <div class="p-4">
+      <form method="post">
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-md-8">
+            <label class="form-label fw-semibold small">Nombre *</label>
+            <input type="text" name="nombre" class="form-control ls-input"
+                   placeholder="Nombre del producto" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold small">Marca</label>
+            <input type="text" name="marca" class="form-control ls-input"
+                   placeholder="Marca">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold small">Categoría</label>
+            <select name="categoria" class="form-select ls-input" required>
+              <option value="" disabled selected>-- Selecciona una categoría --</option>
+              {% for cat in categorias %}
+              <option value="{{ cat.id }}">{{ cat.nombre }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-12">
+            <div class="alert alert-info d-flex align-items-start gap-2 mb-0">
+              <i class="bi bi-info-circle-fill mt-1"></i>
+              <div>
+                El producto se crea sin precio ni stock. Después de crearlo:
+                <ul class="mb-0 mt-1">
+                  <li>Asigna su precio en <a href="{% url 'adm_precios_productos' %}" target="_blank">Precios de productos</a>.</li>
+                  <li>Registra su stock real con una <a href="{% url 'adm_nueva_compra' %}" target="_blank">compra/factura</a>.</li>
+                </ul>
+                No será visible en el catálogo público hasta que tenga un precio asignado.
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold small">Descripción</label>
+            <textarea name="descripcion" class="form-control ls-input" rows="3"
+                      placeholder="Descripción del producto…"></textarea>
+          </div>
+          <div class="col-md-6">
+            <div class="form-check mt-2">
+              <input class="form-check-input" type="checkbox" name="activo"
+                     id="activo" checked>
+              <label class="form-check-label" for="activo">Producto activo</label>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-check mt-2">
+              <input class="form-check-input" type="checkbox" name="destacado"
+                     id="destacado">
+              <label class="form-check-label" for="destacado">Producto destacado ⭐</label>
+            </div>
+          </div>
+        </div>
+        <div class="d-grid mt-4">
+          <button type="submit" class="btn btn-ls">
+            <i class="bi bi-check-circle me-2"></i>Crear producto
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

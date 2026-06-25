@@ -1,0 +1,401 @@
+{% extends 'base.html' %}
+{% load ls_filters %}
+{% block title %}Mi cuenta{% endblock %}
+
+{% block contenido %}
+<div class="container py-4">
+
+  <!-- Header -->
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h2 style="font-family:'Fredoka One',cursive;color:#993556;margin:0;">
+        👤 Mi cuenta
+      </h2>
+      <p class="text-muted small mb-0">{{ user.get_full_name|default:user.username }}</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'mis_datos' %}" class="btn btn-ls-outline">
+        <i class="bi bi-gear me-1"></i>Mis datos
+      </a>
+      <a href="{% url 'inscripcion_clinica' %}" class="btn btn-ls-outline">
+        <i class="bi bi-building-add me-1"></i>Inscribir mi clínica
+      </a>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <a href="#historial" class="text-decoration-none">
+        <div class="ls-stat-card" style="cursor:pointer;border-left-color:#993556;">
+          <div class="stat-number" style="color:#993556;">{{ solicitudes|length }}</div>
+          <div class="text-muted small fw-bold">Mi historial de compras</div>
+          <div class="small mt-1" style="color:#993556;">
+            <i class="bi bi-arrow-right me-1"></i>Ver historial
+          </div>
+        </div>
+      </a>
+    </div>
+    <div class="col-md-4">
+      <a href="#" class="text-decoration-none">
+        <div class="ls-stat-card" style="cursor:pointer;border-left-color:#6B3FA0;">
+          <div class="stat-number" style="color:#6B3FA0;">❤️</div>
+          <div class="text-muted small fw-bold">Mis favoritos</div>
+          <div class="small mt-1" style="color:#6B3FA0;">
+            <i class="bi bi-arrow-right me-1"></i>Próximamente
+          </div>
+        </div>
+      </a>
+    </div>
+    <div class="col-md-4">
+      <div class="ls-stat-card" style="border-left-color:#4CAF50;">
+        <div class="stat-number" style="color:#4CAF50;">${{ total_anio|clp }}</div>
+        <div class="text-muted small fw-bold">Total gastado este año</div>
+        <div class="small mt-1 text-muted">Compras confirmadas</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+
+    <!-- Agregar a mi rutina -->
+    <div class="col-lg-5">
+      <div class="ls-form-card" style="overflow:visible;">
+        <div class="ls-form-header">
+          <h5 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Agregar a mi rutina</h5>
+        </div>
+        <div class="p-4">
+          <div class="mb-3" style="position:relative; z-index:1000;">
+            <label class="form-label fw-semibold">Producto</label>
+            <input type="text" id="buscador-producto" class="form-control ls-input"
+              placeholder="Escribe el nombre o marca… ej: elmex, vitis" autocomplete="off">
+            <div id="sugerencias" class="position-absolute w-100 bg-white border rounded-3 shadow-sm"
+              style="z-index:1050; display:none; min-height:250px; max-height:350px; overflow-y:scroll; top:100%; left:0;">
+            </div>
+          </div>
+          <input type="hidden" id="hidden-producto-id">
+
+          <div class="mb-3" id="bloque-precio" style="display:none;">
+            <label class="form-label fw-semibold">Precio</label>
+            <div class="input-group">
+              <span class="input-group-text" style="background:#FBEAF0;color:#993556;font-weight:700;">$</span>
+              <input type="text" id="precio-display" class="form-control ls-input"
+                style="background:#FBEAF0;color:#993556;font-weight:700;font-size:1.1rem;" readonly>
+            </div>
+          </div>
+
+          <div class="mb-3" id="bloque-cantidad" style="display:none;">
+            <label class="form-label fw-semibold">Cantidad</label>
+            <input type="number" id="input-cantidad" min="1" value="1" class="form-control ls-input">
+          </div>
+
+          <div class="mb-3" id="bloque-total" style="display:none;">
+            <label class="form-label fw-semibold">Total</label>
+            <div class="input-group">
+              <span class="input-group-text" style="background:#E8F5E9;color:#2e7d32;font-weight:700;">$</span>
+              <input type="text" id="total-display" class="form-control ls-input"
+                style="background:#E8F5E9;color:#2e7d32;font-weight:700;font-size:1.1rem;" readonly>
+            </div>
+          </div>
+
+          <div class="d-grid" id="bloque-boton" style="display:none;">
+            <button type="button" id="btn-agregar" class="btn btn-ls" onclick="agregarCarritoPublico()">
+              <i class="bi bi-cart-plus me-2"></i>Agregar a mi rutina
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mi rutina -->
+    <div class="col-lg-7">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0" style="color:#2c1a23;">
+          <i class="bi bi-list-check me-2" style="color:#993556;"></i>Mi rutina
+        </h5>
+        {% if carrito_items %}
+        <a href="{% url 'finalizar_pedido_publico' %}" class="btn btn-ls">
+          <i class="bi bi-send-check me-2"></i>Finalizar pedido
+        </a>
+        {% endif %}
+      </div>
+
+      {% if carrito_items %}
+      <div class="table-responsive">
+        <table class="table ls-table align-middle" style="font-size:.9rem;">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Producto</th>
+              <th style="width:110px;">Cantidad</th>
+              <th>Precio</th>
+              <th>Subtotal</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in carrito_items %}
+            <tr>
+              <td class="text-muted">{{ forloop.counter }}</td>
+              <td>
+                <strong>{{ item.producto.nombre }}</strong>
+                {% if item.producto.marca %}
+                <br><small class="text-muted">{{ item.producto.marca }}</small>
+                {% endif %}
+              </td>
+              <td>
+                <input type="number" value="{{ item.cantidad }}" min="1"
+                  class="form-control form-control-sm ls-input text-center" style="width:70px;"
+                  onchange="actualizarCarritoPublico({{ item.pk }}, this.value)">
+              </td>
+              <td>${{ item.precio_unitario|clp }}</td>
+              <td><strong style="color:#2e7d32;">${{ item.subtotal|clp }}</strong></td>
+              <td>
+                <button class="btn btn-sm btn-outline-danger" onclick="eliminarCarritoPublico({{ item.pk }}, this)">
+                  <i class="bi bi-trash3"></i>
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr style="background:#f8f6f4;">
+              <td colspan="4" class="text-end fw-semibold">Neto (sin IVA)</td>
+              <td colspan="2" class="fw-bold">${{ carrito_neto|clp }}</td>
+            </tr>
+            <tr style="background:#f8f6f4;">
+              <td colspan="4" class="text-end text-muted small">IVA (19%)</td>
+              <td colspan="2" class="text-muted small">${{ carrito_iva|clp }}</td>
+            </tr>
+            <tr style="background:#FBEAF0;">
+              <td colspan="4" class="text-end fw-bold" style="color:#993556;font-size:1.05rem;">Total con IVA</td>
+              <td colspan="2" class="fw-bold" style="color:#993556;font-size:1.1rem;">${{ carrito_total|clp }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <div class="d-grid mt-2">
+        <a href="{% url 'finalizar_pedido_publico' %}" class="btn btn-ls btn-lg">
+          <i class="bi bi-send-check me-2"></i>Finalizar pedido
+        </a>
+      </div>
+      {% else %}
+      <div class="text-center py-5 rounded-3" style="background:#f8f6f4;">
+        <div style="font-size:3.5rem;color:#e8d5dc;">🦷</div>
+        <p class="text-muted mt-2">Aún no tienes una rutina armada.<br>Cuéntanos sobre tus hábitos y te recomendamos qué
+          usar.</p>
+        <a href="{% url 'asesoria_inicio' %}" class="btn btn-ls mt-2">
+          <i class="bi bi-search-heart me-2"></i>Descubre qué necesita tu boca 🦷
+        </a>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <!-- Historial de compras -->
+  <div id="historial" class="mt-5">
+    <h5 class="fw-bold mb-3" style="color:#2c1a23;">
+      <i class="bi bi-clock-history me-2" style="color:#993556;"></i>Mi historial de compras
+    </h5>
+    {% if solicitudes %}
+    <div class="table-responsive">
+      <table class="table ls-table align-middle">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Fecha</th>
+            <th>Productos</th>
+            <th>Total con IVA</th>
+            <th>Estado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sol in solicitudes %}
+          <tr>
+            <td><strong>#{{ sol.pk }}</strong></td>
+            <td><small>{{ sol.fecha_creacion|date:"d/m/Y" }}</small></td>
+            <td>
+              <small>
+                {% for det in sol.detalles.all %}
+                {{ det.producto.nombre }} x{{ det.cantidad }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+              </small>
+            </td>
+            <td><strong style="color:#993556;">${{ sol.total_con_iva|clp }}</strong></td>
+            <td>
+              <span class="badge rounded-pill badge-{{ sol.estado }}">
+                {{ sol.get_estado_display }}
+              </span>
+              {% if sol.pago_estado == 'aprobado' %}
+              <span class="badge rounded-pill" style="background:#d4edda;color:#155724;">
+                <i class="bi bi-check-circle me-1"></i>Pagado
+              </span>
+              {% elif sol.pago_estado == 'rechazado' %}
+              <span class="badge rounded-pill" style="background:#f8d7da;color:#721c24;">
+                <i class="bi bi-x-circle me-1"></i>Pago rechazado
+              </span>
+              {% else %}
+              <span class="badge rounded-pill" style="background:#fff3cd;color:#856404;">
+                <i class="bi bi-clock me-1"></i>Pago pendiente
+              </span>
+              {% endif %}
+            </td>
+            <td>
+              <button class="btn btn-sm btn-ls-outline" onclick="volverAPedir({{ sol.pk }})">
+                <i class="bi bi-arrow-repeat me-1"></i>Volver a pedir
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-4 text-muted">
+      <i class="bi bi-inbox" style="font-size:3rem;color:#e8d5dc;"></i>
+      <p class="mt-2">Aún no tienes compras registradas</p>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:2000;">
+  <div id="toast-carrito" class="toast align-items-center border-0" style="background:#993556;color:white;"
+    role="alert">
+    <div class="d-flex">
+      <div class="toast-body" id="toast-msg">Producto agregado 🛒</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const buscador = document.getElementById('buscador-producto');
+    const sugerencias = document.getElementById('sugerencias');
+    const hiddenId = document.getElementById('hidden-producto-id');
+    const precioDisp = document.getElementById('precio-display');
+    const inputCant = document.getElementById('input-cantidad');
+    const totalDisp = document.getElementById('total-display');
+    let precioActual = 0;
+    let debounceTimer;
+
+    const bloques = ['bloque-precio', 'bloque-cantidad', 'bloque-total', 'bloque-boton'];
+
+    function clp(n) { return n.toLocaleString('es-CL'); }
+
+    function calcTotal() {
+      const cant = parseInt(inputCant.value) || 1;
+      totalDisp.value = clp(precioActual * cant);
+    }
+
+    buscador.addEventListener('input', function () {
+      clearTimeout(debounceTimer);
+      const q = this.value.trim();
+      if (q.length < 2) { sugerencias.style.display = 'none'; return; }
+      debounceTimer = setTimeout(() => {
+        fetch(`/api/buscar-productos/?q=${encodeURIComponent(q)}`)
+          .then(r => r.json())
+          .then(data => {
+            sugerencias.innerHTML = '';
+            if (!data.results.length) {
+              sugerencias.innerHTML = '<div class="px-3 py-2 text-muted small">Sin resultados</div>';
+            } else {
+              data.results.forEach(p => {
+                const div = document.createElement('div');
+                div.className = 'px-3 py-2 d-flex justify-content-between align-items-center';
+                div.style.cssText = 'cursor:pointer; border-bottom:1px solid #f0e6ec;';
+                div.innerHTML = `<span><strong>${p.nombre}</strong>${p.marca ? ' <small class="text-muted">' + p.marca + '</small>' : ''}</span>
+                               <span class="badge rounded-pill" style="background:#FBEAF0;color:#993556;">$${p.precio.toLocaleString('es-CL')}</span>`;
+                div.addEventListener('mouseenter', () => div.style.background = '#faf0f4');
+                div.addEventListener('mouseleave', () => div.style.background = '');
+                div.addEventListener('click', () => {
+                  buscador.value = p.nombre;
+                  hiddenId.value = p.id;
+                  precioActual = p.precio;
+                  precioDisp.value = clp(p.precio);
+                  inputCant.value = 1;
+                  sugerencias.style.display = 'none';
+                  bloques.forEach(id => document.getElementById(id).style.removeProperty('display'));
+                  calcTotal();
+                });
+                sugerencias.appendChild(div);
+              });
+            }
+            sugerencias.style.display = 'block';
+          });
+      }, 280);
+    });
+
+    inputCant.addEventListener('input', calcTotal);
+
+    document.addEventListener('click', e => {
+      if (!buscador.contains(e.target) && !sugerencias.contains(e.target))
+        sugerencias.style.display = 'none';
+    });
+  })();
+
+  function mostrarToast(msg) {
+    document.getElementById('toast-msg').textContent = msg;
+    const t = new bootstrap.Toast(document.getElementById('toast-carrito'), { delay: 3000 });
+    t.show();
+  }
+
+  function getCookie(name) {
+    let v = null;
+    document.cookie.split(';').forEach(c => {
+      c = c.trim();
+      if (c.startsWith(name + '=')) v = decodeURIComponent(c.slice(name.length + 1));
+    });
+    return v;
+  }
+
+  function agregarCarritoPublico() {
+    const prodId = document.getElementById('hidden-producto-id').value;
+    const cantidad = parseInt(document.getElementById('input-cantidad').value) || 1;
+    if (!prodId) return;
+    fetch('/api/carrito-publico/agregar/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+      body: JSON.stringify({ producto_id: prodId, cantidad: cantidad })
+    }).then(r => r.json()).then(data => {
+      if (data.ok) { mostrarToast(data.nombre + ' agregado 🛒'); location.reload(); }
+    });
+  }
+
+  function actualizarCarritoPublico(itemId, cantidad) {
+    fetch('/api/carrito-publico/actualizar/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+      body: JSON.stringify({ item_id: itemId, cantidad: parseInt(cantidad) })
+    }).then(r => r.json()).then(data => {
+      if (data.ok) location.reload();
+    });
+  }
+
+  function eliminarCarritoPublico(itemId, btn) {
+    fetch('/api/carrito-publico/eliminar/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+      body: JSON.stringify({ item_id: itemId })
+    }).then(r => r.json()).then(data => {
+      if (data.ok) { location.reload(); }
+    });
+  }
+
+  function volverAPedir(solId) {
+    fetch('/api/volver-a-pedir/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+      body: JSON.stringify({ solicitud_id: solId })
+    }).then(r => r.json()).then(data => {
+      if (data.ok) { mostrarToast('Productos agregados a tu rutina 🛒'); location.reload(); }
+    });
+  }
+</script>
+{% endblock %}

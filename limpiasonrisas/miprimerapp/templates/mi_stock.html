@@ -1,0 +1,670 @@
+{% extends 'base.html' %}
+{% load ls_filters %}
+{% block title %}Mi Stock – {{ clinica.nombre_clinica }}{% endblock %}
+
+{% block contenido %}
+<div class="container py-4">
+
+    <!-- Header -->
+    <div class="d-flex align-items-start justify-content-between mb-3 flex-wrap gap-2">
+        <div>
+            <h2 style="font-family:'Fredoka One',cursive;color:#993556;margin:0;">
+                📦 Mi stock
+            </h2>
+            <p class="text-muted small mb-2">
+                Lleva el control de los insumos que has adquirido en Limpiasonrisas.
+                Define tu stock mínimo y te avisamos cuándo reponer.
+            </p>
+            <button class="btn btn-ls" onclick="toggleForm()">
+                <i class="bi bi-plus-circle me-2"></i>Agrega tus productos vendidos
+            </button>
+        </div>
+        <a href="{% url 'dashboard_clinica' %}" class="btn btn-ls-outline">
+            <i class="bi bi-arrow-left me-1"></i>Volver al panel
+        </a>
+    </div>
+
+    <!-- Formulario registrar venta -->
+    <div id="form-venta" style="display:none; overflow:visible;" class="ls-form-card mb-4">
+        <div class="ls-form-header">
+            <h5 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Registrar venta</h5>
+        </div>
+        <div class="p-4">
+            <!-- Datos del vendedor -->
+            <div class="row g-3 mb-3">
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold small">Quién vendió</label>
+                    <input type="text" id="quien-vendio" class="form-control ls-input" placeholder="Dr. García"
+                        list="personal-list" autocomplete="off">
+                    <datalist id="personal-list">
+                        {% for p in personal_list %}
+                        <option value="{{ p.nombre }}">
+                            {% endfor %}
+                    </datalist>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold small">Especialidad</label>
+                    <select id="especialidad-select" class="form-select ls-input">
+                        <option value="dentista_general">Dentista General</option>
+                        <option value="asistente">Asistente</option>
+                        <option value="secretaria">Secretaria</option>
+                        <option value="implantólogo">Implantólogo</option>
+                        <option value="periodoncista">Periodoncista</option>
+                        <option value="rehabilitador">Rehabilitador</option>
+                        <option value="ortodoncista">Ortodoncista</option>
+                        <option value="odontopediatra">Odontopediatra</option>
+                        <option value="endodoncista">Endodoncista</option>
+                        <option value="patologo_oral">Patólogo Oral</option>
+                        <option value="ttm_dof">TTM y DOF</option>
+                        <option value="otro">Otro</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold small">Fecha de venta</label>
+                    <input type="date" id="fecha-venta" class="form-control ls-input">
+                </div>
+            </div>
+
+            <!-- Filas de productos -->
+            <div id="productos-venta">
+                <div class="fila-producto row g-2 align-items-center mb-2">
+                    <div class="col-md-8" style="position:relative;">
+                        <input type="text" class="form-control ls-input producto-input" placeholder="Busca el producto…"
+                            autocomplete="off">
+                        <input type="hidden" class="producto-id-input">
+                        <div class="sugerencias-prod position-absolute bg-white border rounded-3 shadow-sm"
+                            style="z-index:1050;display:none;max-height:200px;overflow-y:auto;width:100%;top:100%;left:0;">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="number" class="form-control ls-input cantidad-input" min="1" value="1"
+                            placeholder="Cantidad">
+                    </div>
+                    <div class="col-md-1">
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="eliminarFila(this)"
+                            disabled>
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between mt-3">
+                <button type="button" class="btn btn-ls-outline" onclick="agregarFila()">
+                    <i class="bi bi-plus-circle me-2"></i>Agregar otro producto
+                </button>
+                <button class="btn btn-ls" onclick="guardarVenta()">
+                    <i class="bi bi-check-circle me-2"></i>Guardar venta
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="d-flex align-items-center gap-2 flex-wrap mb-3">
+        <span class="small text-muted fw-semibold">Ver vendidos:</span>
+        {% for p, label in periodo_opciones %}
+        <a href="?periodo={{ p }}{% if persona_id != 'todos' %}&persona={{ persona_id }}{% endif %}"
+            class="btn btn-sm {% if periodo == p %}btn-ls{% else %}btn-ls-outline{% endif %}">
+            {{ label }}
+        </a>
+        {% endfor %}
+        <span class="small text-muted fw-semibold ms-3">Filtrar por persona:</span>
+        <select class="form-select form-select-sm ls-input" style="width:auto;"
+            onchange="window.location='?periodo={{ periodo }}&persona='+this.value">
+            <option value="todos" {% if es_todos %}selected{% endif %}>Todos</option>
+            {% for p in personal_list %}
+            <option value="{{ p.pk }}">
+                {{ p.nombre }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Tabla -->
+    {% if stock_data %}
+    <div class="ls-form-card" style="overflow:visible;">
+        <div style="overflow-x:auto; max-height:480px; overflow-y:auto;">
+            <table class="table ls-table align-middle mb-0" style="font-size:.85rem; min-width:900px;">
+                <thead style="position:sticky;top:0;background:#fff;z-index:10;">
+                    <tr>
+                        <th title="Productos adquiridos en Limpiasonrisas" style="cursor:help;">Producto</th>
+                        <th class="text-center"
+                            title="Total comprado de enero a diciembre del año vigente en Limpiasonrisas"
+                            style="cursor:help;">Comprado (año)</th>
+                        <th class="text-center" title="Unidades vendidas en el período seleccionado"
+                            style="cursor:help;">Vendidos</th>
+                        <th class="text-center" title="En esta sección modifica tu stock mínimo" style="cursor:help;">
+                            Stock mín.</th>
+                        <th class="text-center">Stock est.</th>
+                        <th class="text-center">Estado</th>
+                        <th title="Profesional que más recomienda este producto" style="cursor:help;">Quién vende más
+                        </th>
+                        <th title="Historial de cada venta registrada de este producto" style="cursor:help;">Detalle venta
+                        </th>
+                        <th class="text-center" title="Unidades que tienes de otro proveedor o stock previo, no compradas en Limpiasonrisas" style="cursor:help;">Stock Externo
+                        </th>
+                        <th class="text-center">Reponer</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in stock_data %}
+                    <tr>
+                        <td>
+                            <strong style="font-size:.85rem;">{{ item.producto.nombre }}</strong><br>
+                            <small class="text-muted">Último pedido: {{ item.ultimo_pedido|date:"d/m/Y" }}</small>
+                        </td>
+                        <td class="text-center fw-semibold">{{ item.total_comprado }}</td>
+                        <td class="text-center">{{ item.vendidos }}</td>
+                        <td class="text-center">
+                            <input type="number" min="0" value="{{ item.minimo }}"
+                                class="form-control form-control-sm text-center ls-input"
+                                style="width:60px;margin:auto;"
+                                onchange="actualizarMinimo({{ item.producto.pk }}, this.value)">
+                        </td>
+                        <td class="text-center fw-bold"
+                            style="color:{% if item.estado == 'ok' %}#2e7d32{% elif item.estado == 'bajo' %}#854F0B{% elif item.estado == 'reponer' %}#A32D2D{% else %}#888{% endif %};">
+                            {{ item.stock_estimado }}
+                        </td>
+                        <td class="text-center">
+                            {% if item.estado == 'ok' %}
+                            <span class="badge rounded-pill" style="background:#D1FAE5;color:#065F46;font-size:.75rem;">
+                                <i class="bi bi-check-circle me-1"></i>OK
+                            </span>
+                            {% elif item.estado == 'bajo' %}
+                            <span class="badge rounded-pill" style="background:#FEF3C7;color:#92400E;font-size:.75rem;">
+                                <i class="bi bi-exclamation-triangle me-1"></i>Bajo
+                            </span>
+                            {% elif item.estado == 'reponer' %}
+                            <span class="badge rounded-pill" style="background:#FEE2E2;color:#991B1B;font-size:.75rem;">
+                                <i class="bi bi-exclamation-circle me-1"></i>Reponer
+                            </span>
+                            {% else %}
+                            <span class="badge rounded-pill" style="background:#F3F4F6;color:#6B7280;font-size:.75rem;">
+                                Sin definir
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.ventas_personal %}
+                            <button class="btn btn-sm btn-ls-outline" style="font-size:.75rem;padding:2px 10px;"
+                                onclick="toggleDetalle('rank-{{ item.producto.pk }}', this)">
+                                Ver ranking
+                            </button>
+                            {% else %}
+                            <small class="text-muted">Sin registro</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.ventas_detalle %}
+                            <button class="btn btn-sm" style="font-size:.75rem;padding:2px 10px;border:2px solid #993556;color:#993556;background:white;border-radius:25px;font-weight:700;"
+                                onclick="toggleDetalle('det-{{ item.producto.pk }}', this)">
+                                Ver detalle
+                            </button>
+                            {% else %}
+                            <small class="text-muted">Sin ventas</small>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <input type="number" value="{{ item.ajuste }}"
+                                class="form-control form-control-sm text-center ls-input"
+                                style="width:65px;margin:auto;"
+                                onchange="ajustarInventario({{ item.producto.pk }}, this.value)">
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex align-items-center justify-content-center gap-1">
+                                <input type="number" min="1" value="1" id="reponer-{{ item.producto.pk }}"
+                                    class="form-control form-control-sm text-center ls-input" style="width:55px;">
+                                <button class="btn btn-sm btn-ls-outline"
+                                    onclick="agregarCarritoStock({{ item.producto.pk }}, '{{ item.producto.nombre|escapejs }}')"
+                                    title="Agregar al carrito">
+                                    <i class="bi bi-cart-plus"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- Fila ranking por personal (solo informativo) -->
+                    <tr id="rank-{{ item.producto.pk }}" style="display:none;">
+                        <td colspan="10" style="padding:0;">
+                            <div style="background:#fdfbfc;padding:12px 24px;border-bottom:1px solid #f0e6ec;">
+                                <small class="text-muted fw-semibold">Ranking de ventas por profesional</small>
+                                <table class="table table-sm mb-0 mt-2" style="font-size:.8rem;">
+                                    <thead>
+                                        <tr>
+                                            <th>Profesional</th>
+                                            <th>Especialidad</th>
+                                            <th class="text-center">Vendidos</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for vp in item.ventas_personal %}
+                                        <tr>
+                                            <td>{{ vp.personal__nombre }}</td>
+                                            <td class="text-muted">{{ vp.personal__especialidad|especialidad_label }}
+                                            </td>
+                                            <td class="text-center fw-bold">{{ vp.total }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Fila detalle de ventas individuales -->
+                    <tr id="det-{{ item.producto.pk }}" style="display:none;">
+                        <td colspan="10" style="padding:0;">
+                            <div style="background:#fdfbfc;padding:12px 24px;border-bottom:1px solid #f0e6ec;">
+                                <small class="text-muted fw-semibold">Detalle de ventas</small>
+                                <table class="table table-sm mb-0 mt-2" style="font-size:.8rem;">
+                                    <thead>
+                                        <tr>
+                                            <th>Profesional</th>
+                                            <th>Especialidad</th>
+                                            <th class="text-center">Cant.</th>
+                                            <th>Fecha</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for venta in item.ventas_detalle %}
+                                        <tr>
+                                            <td>{{ venta.personal.nombre|default:"Sin registro" }}</td>
+                                            <td class="text-muted">{{ venta.personal.especialidad|especialidad_label }}</td>
+                                            <td class="text-center fw-bold">{{ venta.cantidad }}</td>
+                                            <td>{{ venta.fecha|date:"d/m/Y" }}</td>
+                                            <td class="text-center">
+                                                <button class="btn btn-sm btn-outline-danger"
+                                                    onclick="eliminarVenta({{ venta.pk }}, this)"
+                                                    title="Eliminar esta venta">
+                                                    <i class="bi bi-trash3"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <!-- Footer tabla -->
+        <div class="p-3 d-flex justify-content-between align-items-center"
+            style="border-top:1px solid #f0e6ec;background:#fdfbfc;">
+            <small class="text-muted">
+                <i class="bi bi-info-circle me-1"></i>
+                En esta sección puedes llevar el control de tu stock de insumos dentales. Los datos se guardan
+                automáticamente.
+            </small>
+            <button class="btn btn-ls" data-bs-toggle="modal" data-bs-target="#modalHacerPedido">
+                <i class="bi bi-send-check me-2"></i>Hacer pedido
+            </button>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="text-center py-5">
+        <div style="font-size:4rem;color:#e8d5dc;">📦</div>
+        <h4 class="mt-3" style="color:#993556;">Aún no tienes compras registradas</h4>
+        <p class="text-muted">Cuando realices tu primer pedido, aquí verás tu stock.</p>
+        <a href="{% url 'dashboard_clinica' %}" class="btn btn-ls mt-2">
+            <i class="bi bi-cart-plus me-2"></i>Hacer mi primer pedido
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Botón sugerir producto -->
+    <div class="d-flex gap-2 mt-3 justify-content-end">
+        <button class="btn btn-ls-outline" data-bs-toggle="modal" data-bs-target="#modalSugerirProducto">
+            <i class="bi bi-lightbulb me-2"></i>¿No encuentras un producto?
+        </button>
+    </div>
+
+    <!-- Modal sugerir producto -->
+    <div class="modal fade" id="modalSugerirProducto" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold" style="color:#993556;">
+                        💡 ¿No encuentras un producto en nuestro catálogo?
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3">Cuéntanos qué necesitas y lo evaluamos para incorporarlo. ¡Tu
+                        opinión nos ayuda a crecer!</p>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Nombre del producto *</label>
+                        <input type="text" id="sug-nombre" class="form-control ls-input"
+                            placeholder="Ej: Hilo dental biodegradable">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Marca</label>
+                        <input type="text" id="sug-marca" class="form-control ls-input" placeholder="Ej: GUM, Oral-B…">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">¿Para qué lo usan en la clínica?</label>
+                        <textarea id="sug-uso" class="form-control ls-input" rows="2"
+                            placeholder="Ej: Pacientes con ortodoncia, post cirugía…"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">¿Cuántas unidades aprox. necesitan al mes?</label>
+                        <input type="number" id="sug-cantidad" class="form-control ls-input" min="1"
+                            placeholder="Ej: 20">
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-ls-outline" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-ls" onclick="enviarSugerencia()">
+                        <i class="bi bi-send me-2"></i>Enviar sugerencia
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal hacer pedido -->
+    <div class="modal fade" id="modalHacerPedido" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold" style="color:#993556;">
+                        🛒 ¿Listo para hacer tu pedido?
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted">Ya tienes productos en tu carrito. ¿Qué deseas hacer?</p>
+                </div>
+                <div class="modal-footer border-0 pt-0 d-flex gap-2">
+                    <button type="button" class="btn btn-ls-outline" data-bs-dismiss="modal">
+                        <i class="bi bi-eye me-1"></i>Seguir en Mi Stock
+                    </button>
+                    <a href="{% url 'finalizar_pedido' %}" class="btn btn-ls">
+                        <i class="bi bi-cart3 me-1"></i>Ir a mi carrito →
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+
+    <div class="position-fixed end-0 p-3" style="bottom:90px; z-index:2000;">
+        <div id="toast-carrito" class="toast align-items-center border-0" style="background:#993556;color:white;"
+            role="alert">
+            <div class="d-flex">
+                <div class="toast-body" id="toast-msg">Producto agregado al carrito 🛒</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Modal eliminar venta -->
+<div class="modal fade" id="modalEliminarVenta" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" style="color:#993556;">
+                    🗑 ¿Eliminar esta venta?
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted">Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-ls-outline" data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+                <button type="button" class="btn btn-danger rounded-3" onclick="confirmarEliminarVenta()">
+                    <i class="bi bi-trash3 me-2"></i>Sí, eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function confirmarEliminarVenta() {
+        fetch('/api/eliminar-venta/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            body: JSON.stringify({ venta_id: ventaIdAEliminar })
+        }).then(r => r.json()).then(data => {
+            if (data.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('modalEliminarVenta')).hide();
+                btnEliminarRef.closest('tr').remove();
+                mostrarToast('Venta eliminada ✅');
+            }
+        });
+    }
+
+    let ventaIdAEliminar = null;
+    let btnEliminarRef = null;
+
+    function eliminarVenta(ventaId, btn) {
+        ventaIdAEliminar = ventaId;
+        btnEliminarRef = btn;
+        const modal = new bootstrap.Modal(document.getElementById('modalEliminarVenta'));
+        modal.show();
+    }
+
+    function toggleForm() {
+        const f = document.getElementById('form-venta');
+        f.style.display = f.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function toggleDetalle(id, btn) {
+        const row = document.getElementById(id);
+        const visible = row.style.display !== 'none';
+        row.style.display = visible ? 'none' : 'table-row';
+        const textoOriginal = btn.dataset.textoOriginal || btn.textContent.trim();
+        btn.dataset.textoOriginal = textoOriginal;
+        btn.textContent = visible ? textoOriginal : 'Cerrar';
+    }
+
+    function mostrarToast(msg, esError = false) {
+        const toastEl = document.getElementById('toast-carrito');
+        document.getElementById('toast-msg').textContent = msg;
+        toastEl.style.background = esError ? '#C0392B' : '#993556';
+        const t = new bootstrap.Toast(toastEl, { delay: 3000 });
+        t.show();
+    }
+
+    function actualizarMinimo(prodId, valor) {
+        fetch('/api/actualizar-minimo/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            body: JSON.stringify({ producto_id: prodId, minimo: parseInt(valor) })
+        });
+    }
+
+    function ajustarInventario(prodId, valor) {
+        fetch('/api/ajuste-inventario/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            body: JSON.stringify({ producto_id: prodId, cantidad: parseInt(valor) })
+        }).then(r => r.json()).then(data => {
+            if (data.ok) mostrarToast('Ajuste guardado ✅');
+        });
+    }
+
+    function agregarCarritoStock(prodId, nombre) {
+        const cant = parseInt(document.getElementById('reponer-' + prodId).value) || 1;
+        fetch('/api/agregar-carrito-stock/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            body: JSON.stringify({ producto_id: prodId, cantidad: cant })
+        }).then(r => r.json()).then(data => {
+            if (data.ok) mostrarToast('"' + nombre + '" agregado al carrito 🛒');
+        });
+    }
+
+    function guardarVenta() {
+        const quien = document.getElementById('quien-vendio').value.trim();
+        const esp = document.getElementById('especialidad-select').value;
+        const fecha = document.getElementById('fecha-venta').value;
+
+        if (!fecha) {
+            mostrarToast('Debes indicar la fecha de la venta', true);
+            return;
+        }
+
+        const hoy = new Date().toISOString().split('T')[0];
+        if (fecha > hoy) {
+            mostrarToast('La fecha de venta no puede ser futura', true);
+            return;
+        }
+
+        // Recopilar todos los productos de las filas
+        const filas = document.querySelectorAll('.fila-producto');
+        const items = [];
+
+        filas.forEach(fila => {
+            const prodId = fila.querySelector('.producto-id-input').value;
+            const cant = parseInt(fila.querySelector('.cantidad-input').value);
+            if (prodId && cant > 0) {
+                items.push({ producto_id: prodId, cantidad: cant });
+            }
+        });
+
+        if (items.length === 0) {
+            mostrarToast('Selecciona al menos un producto', true);
+            return;
+        }
+
+        fetch('/api/registrar-venta/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            body: JSON.stringify({
+                quien: quien,
+                especialidad: esp,
+                fecha: fecha,
+                items: items,
+            })
+        }).then(r => r.json()).then(data => {
+            if (data.ok) {
+                mostrarToast('Venta registrada ✅');
+                location.reload();
+            } else {
+                mostrarToast('Error: ' + data.error, true);
+            }
+        });
+    }
+
+    function enviarSugerencia() {
+        const nombre = document.getElementById('sug-nombre').value.trim();
+        if (!nombre) { mostrarToast('El nombre del producto es obligatorio', true); return; }
+        fetch('/api/sugerir-producto/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            body: JSON.stringify({
+                nombre: nombre,
+                marca: document.getElementById('sug-marca').value.trim(),
+                uso: document.getElementById('sug-uso').value.trim(),
+                cantidad_mensual: document.getElementById('sug-cantidad').value || null,
+            })
+        }).then(r => r.json()).then(data => {
+            if (data.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('modalSugerirProducto')).hide();
+                mostrarToast('¡Gracias! Revisaremos tu sugerencia 💡');
+                document.getElementById('sug-nombre').value = '';
+                document.getElementById('sug-marca').value = '';
+                document.getElementById('sug-uso').value = '';
+                document.getElementById('sug-cantidad').value = '';
+            }
+        });
+    }
+
+    let debounce;
+    function iniciarAutocomplete(input) {
+        input.addEventListener('input', function () {
+            clearTimeout(debounce);
+            const q = this.value.trim();
+            const sug = this.parentElement.querySelector('.sugerencias-prod');
+            if (q.length < 2) { sug.style.display = 'none'; return; }
+            debounce = setTimeout(() => {
+                fetch('/api/buscar-productos/?q=' + encodeURIComponent(q))
+                    .then(r => r.json()).then(data => {
+                        sug.innerHTML = '';
+                        data.results.forEach(p => {
+                            const d = document.createElement('div');
+                            d.className = 'px-3 py-2';
+                            d.style.cssText = 'cursor:pointer;border-bottom:1px solid #f0e6ec;font-size:.85rem;';
+                            d.textContent = p.nombre;
+                            d.addEventListener('mouseenter', () => d.style.background = '#faf0f4');
+                            d.addEventListener('mouseleave', () => d.style.background = '');
+                            d.addEventListener('click', () => {
+                                input.value = p.nombre;
+                                input.parentElement.querySelector('.producto-id-input').value = p.id;
+                                sug.style.display = 'none';
+                            });
+                            sug.appendChild(d);
+                        });
+                        sug.style.display = data.results.length ? 'block' : 'none';
+                    });
+            }, 280);
+        });
+    }
+
+    // Iniciar autocomplete en todas las filas existentes
+    document.querySelectorAll('.producto-input').forEach(input => iniciarAutocomplete(input));
+
+    document.addEventListener('click', e => {
+        document.querySelectorAll('.sugerencias-prod').forEach(s => {
+            if (!s.previousElementSibling?.contains(e.target)) s.style.display = 'none';
+        });
+    });
+
+    function agregarFila() {
+        const container = document.getElementById('productos-venta');
+        const fila = document.createElement('div');
+        fila.className = 'fila-producto row g-2 align-items-center mb-2';
+        fila.innerHTML = `
+    <div class="col-md-8" style="position:relative;">
+      <input type="text" class="form-control ls-input producto-input"
+             placeholder="Busca el producto…" autocomplete="off">
+      <input type="hidden" class="producto-id-input">
+      <div class="sugerencias-prod position-absolute bg-white border rounded-3 shadow-sm"
+           style="z-index:1050;display:none;max-height:200px;overflow-y:auto;width:100%;top:100%;left:0;"></div>
+    </div>
+    <div class="col-md-3">
+      <input type="number" class="form-control ls-input cantidad-input" min="1" value="1" placeholder="Cantidad">
+    </div>
+    <div class="col-md-1">
+      <button type="button" class="btn btn-outline-danger btn-sm" onclick="eliminarFila(this)">
+        <i class="bi bi-trash3"></i>
+      </button>
+    </div>`;
+        container.appendChild(fila);
+        iniciarAutocomplete(fila.querySelector('.producto-input'));
+    }
+
+    function eliminarFila(btn) {
+        const filas = document.querySelectorAll('.fila-producto');
+        if (filas.length > 1) btn.closest('.fila-producto').remove();
+    }
+
+    document.addEventListener('click', e => {
+        if (!document.getElementById('producto-venta').contains(e.target))
+            document.getElementById('sugerencias-venta').style.display = 'none';
+    });
+
+    function getCookie(name) {
+        let v = null;
+        document.cookie.split(';').forEach(c => {
+            c = c.trim();
+            if (c.startsWith(name + '=')) v = decodeURIComponent(c.slice(name.length + 1));
+        });
+        return v;
+    }
+
+
+</script>
+{% endblock %} 

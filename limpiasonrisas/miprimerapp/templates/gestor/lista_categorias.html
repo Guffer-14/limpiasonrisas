@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% block title %}Categorías — Gestor{% endblock %}
+
+{% block contenido %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 style="font-family:'Fredoka One',cursive;color:#993556;">
+      🗂️ Gestión de Categorías
+    </h2>
+    <div class="d-flex gap-2">
+      <a href="{% url 'gestor_crear_categoria' %}" class="btn btn-ls">
+        <i class="bi bi-plus-circle me-2"></i>Nueva categoría
+      </a>
+      <a href="{% url 'gestor_dashboard' %}" class="btn btn-ls-outline">
+        <i class="bi bi-arrow-left me-1"></i>Volver
+      </a>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table ls-table align-middle" style="font-size:.85rem;">
+      <thead>
+        <tr>
+          <th onclick="ordenar('id')" style="cursor:pointer;">
+            # <span id="flecha-id">↕</span>
+          </th>
+          <th onclick="ordenar('nombre')" style="cursor:pointer;">
+            Nombre <span id="flecha-nombre">↕</span>
+          </th>
+          <th onclick="ordenar('descripcion')" style="cursor:pointer;"
+              title="Texto explicativo que aparece en el catálogo y ayuda al cliente a entender qué productos incluye esta categoría">
+            Descripción <span id="flecha-descripcion">↕</span>
+          </th>
+          <th class="text-center" onclick="ordenar('orden')" style="cursor:pointer;"
+              title="Número que define el orden de aparición en el catálogo. Menor número aparece primero">
+            Orden <span id="flecha-orden">↕</span>
+          </th>
+          <th class="text-center" onclick="ordenar('productos')" style="cursor:pointer;"
+              title="Cantidad de productos asignados a esta categoría">
+            Productos <span id="flecha-productos">↕</span>
+          </th>
+          <th class="text-center" onclick="ordenar('activo')" style="cursor:pointer;"
+              title="Si está activa, la categoría aparece visible en el catálogo público">
+            Activo <span id="flecha-activo">↕</span>
+          </th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="cuerpo-tabla">
+        {% for cat in categorias %}
+        <tr data-id="{{ cat.id }}"
+            data-nombre="{{ cat.nombre }}"
+            data-descripcion="{{ cat.descripcion|default:'' }}"
+            data-orden="{{ cat.orden }}"
+            data-productos="{{ cat.productos.count }}"
+            data-activo="{% if cat.activo %}1{% else %}0{% endif %}">
+          <td>{{ cat.id }}</td>
+          <td>
+            <i class="{{ cat.icono }} me-2" style="color:#993556;"></i>
+            <strong>{{ cat.nombre }}</strong>
+          </td>
+          <td><small class="text-muted">{{ cat.descripcion|default:"—" }}</small></td>
+          <td class="text-center">{{ cat.orden }}</td>
+          <td class="text-center">
+            <a href="{% url 'gestor_lista_productos' %}?categoria={{ cat.id }}"
+               class="badge rounded-pill text-decoration-none"
+               style="background:#FBEAF0;color:#993556;">
+              {{ cat.productos.count }} productos
+            </a>
+          </td>
+          <td class="text-center">
+            {% if cat.activo %}
+              <span class="badge rounded-pill" style="background:#D1FAE5;color:#065F46;">Sí</span>
+            {% else %}
+              <span class="badge rounded-pill" style="background:#FEE2E2;color:#991B1B;">No</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{% url 'gestor_editar_categoria' cat.id %}" class="btn btn-sm btn-ls-outline">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <a href="{% url 'gestor_eliminar_categoria' cat.id %}" class="btn btn-sm btn-outline-danger"
+               onclick="return confirm('¿Eliminar esta categoría?')">
+              <i class="bi bi-trash3"></i>
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center text-muted">No hay categorías</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+let ordenActual = '';
+let ascendente = true;
+
+function ordenar(columna) {
+  const tbody = document.getElementById('cuerpo-tabla');
+  const filas = Array.from(tbody.querySelectorAll('tr'));
+
+  if (ordenActual === columna) {
+    ascendente = !ascendente;
+  } else {
+    ascendente = true;
+    ordenActual = columna;
+  }
+
+  document.querySelectorAll('[id^="flecha-"]').forEach(f => f.textContent = '↕');
+  document.getElementById('flecha-' + columna).textContent = ascendente ? '↑' : '↓';
+
+  filas.sort((a, b) => {
+    let valA = a.dataset[columna] || '';
+    let valB = b.dataset[columna] || '';
+    const numA = parseFloat(valA);
+    const numB = parseFloat(valB);
+    if (!isNaN(numA) && !isNaN(numB)) {
+      return ascendente ? numA - numB : numB - numA;
+    }
+    return ascendente
+      ? valA.localeCompare(valB, 'es')
+      : valB.localeCompare(valA, 'es');
+  });
+
+  filas.forEach(f => tbody.appendChild(f));
+}
+</script>
+{% endblock %}
